@@ -1,0 +1,233 @@
+[
+  {
+    "name": "access",
+    "template": "<% a = [1, 2, 3, 4, 5] %><%= a[0] %>,<%= a[-1] %>,<%= a[1, 2].inspect %>,<%= a[1..2].inspect %>,<%= a[1...-1].inspect %>,<%= a[9].inspect %>,<%= a[5, 1].inspect %>,<%= a[6, 1].inspect %>,<%= a.first %>,<%= a.first(2).inspect %>,<%= a.last(2).inspect %>,<%= a.dig(0) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "1,5,[2, 3],[2, 3],[2, 3, 4],nil,[],nil,1,[1, 2],[4, 5],1"
+  },
+  {
+    "name": "mutation",
+    "template": "<% a = [1] %><% a << 2; a.push(3, 4); a.unshift(0); x = a.pop; y = a.shift; a.insert(1, 9) %><%= a.inspect %>,<%= x %>,<%= y %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[1, 9, 2, 3],4,0"
+  },
+  {
+    "name": "index_assign_extend",
+    "template": "<% a = [1] %><% a[3] = 4 %><%= a.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[1, nil, nil, 4]"
+  },
+  {
+    "name": "index_assign_negative",
+    "template": "<% a = [1, 2, 3] %><% a[-1] = 9 %><%= a.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[1, 2, 9]"
+  },
+  {
+    "name": "index_assign_range",
+    "template": "<% a = [1, 2, 3, 4] %><% a[1, 2] = 9 %><%= a.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[1, 9, 4]"
+  },
+  {
+    "name": "delete_methods",
+    "template": "<% a = [1, 2, 3, 2, 4] %><% a.delete(2); a.delete_at(0); a.delete_if { |x| x > 3 } %><%= a.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[3]"
+  },
+  {
+    "name": "reference_semantics",
+    "template": "<% a = [1]; b = a; b << 2 %><%= a.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[1, 2]"
+  },
+  {
+    "name": "dup_independent",
+    "template": "<% a = [1]; b = a.dup; b << 2 %><%= a.inspect %>,<%= b.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[1],[1, 2]"
+  },
+  {
+    "name": "set_ops",
+    "template": "<%= ([1, 2, 3] + [4]).inspect %>,<%= ([1, 2, 2, 3] - [2]).inspect %>,<%= ([1, 2] * 2).inspect %>,<%= [1, 2] * ', ' %>,<%= ([1, 2, 3] & [2, 3, 4]).inspect %>,<%= ([1, 2] | [2, 3]).inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[1, 2, 3, 4],[1, 3],[1, 2, 1, 2],1, 2,[2, 3],[1, 2, 3]"
+  },
+  {
+    "name": "query",
+    "template": "<% a = [3, 1, 2] %><%= a.length %>,<%= a.size %>,<%= a.empty? %>,<%= [].empty? %>,<%= a.include?(2) %>,<%= a.index(2) %>,<%= a.find_index { |x| x < 3 } %>,<%= a.rindex(2) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "3,3,false,true,true,2,1,2"
+  },
+  {
+    "name": "transform",
+    "template": "<% a = [3, 1, nil, 2, [4, [5]]] %><%= a.compact.inspect %>,<%= a.flatten.inspect %>,<%= a.flatten(1).inspect %>,<%= [1, 2, 3].reverse.inspect %>,<%= [1, 2, 3].rotate.inspect %>,<%= [1, 2, 3].rotate(-1).inspect %>,<%= [1, 1, 2].uniq.inspect %>,<%= [1, 2, 3, 4].uniq { |x| x % 2 }.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[3, 1, 2, [4, [5]]],[3, 1, nil, 2, 4, 5],[3, 1, nil, 2, 4, [5]],[3, 2, 1],[2, 3, 1],[3, 1, 2],[1, 2],[1, 2]"
+  },
+  {
+    "name": "sort",
+    "template": "<%= [3, 1, 2].sort.inspect %>,<%= %w[b c a].sort.inspect %>,<%= [3, 1, 2].sort { |a, b| b <=> a }.inspect %>,<%= %w[ccc a bb].sort_by(&:length).inspect %>,<%= [[2, 'a'], [1, 'b']].sort.inspect %>,<%= [1.5, 1, 2].sort.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[1, 2, 3],[\"a\", \"b\", \"c\"],[3, 2, 1],[\"a\", \"bb\", \"ccc\"],[[1, \"b\"], [2, \"a\"]],[1, 1.5, 2]"
+  },
+  {
+    "name": "sort_mixed_error",
+    "template": "<%= [1, 'a'].sort %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "ArgumentError"
+  },
+  {
+    "name": "min_max_sum",
+    "template": "<% a = [3, 1, 2] %><%= a.min %>,<%= a.max %>,<%= a.sum %>,<%= a.max(2).inspect %>,<%= a.min_by { |x| -x } %>,<%= a.max_by { |x| -x } %>,<%= a.minmax.inspect %>,<%= [].max.inspect %>,<%= [].sum %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "1,3,6,[3, 2],3,1,[1, 3],nil,0"
+  },
+  {
+    "name": "float_sum_kahan",
+    "template": "<%= [0.1, 0.2, 0.3].sum %>,<%= [0.1] * 10 %>,<%= ([0.1] * 10).sum %>,<%= [1, 0.1, 0.2].sum %>,<%= [1e100, 1.0, -1e100].sum %>,<%= ['a', 'b'].sum('') %>,<%= [[1], [2]].sum([]).inspect %>,<%= [0.1, 0.2].sum(1) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "0.6,[0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],1.0,1.3,1.0,ab,[1, 2],1.3"
+  },
+  {
+    "name": "inject_reduce",
+    "template": "<%= [1, 2, 3].inject { |s, x| s + x } %>,<%= [1, 2, 3].reduce(10) { |s, x| s + x } %>,<%= [1, 2, 3].inject(:*) %>,<%= [1, 2, 3].reduce(2, :*) %>,<%= [].inject(:+).inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "6,16,6,12,nil"
+  },
+  {
+    "name": "join",
+    "template": "<%= [1, 2, 3].join %>,<%= [1, 2, 3].join('-') %>,<%= [1, [2, [3]], nil, 'x'].join(',') %>,<%= [].join(',').inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "123,1-2-3,1,2,3,,x,\"\""
+  },
+  {
+    "name": "enumerable_preds",
+    "template": "<% a = [1, 2, 3] %><%= a.any? { |x| x > 2 } %>,<%= a.all? { |x| x > 0 } %>,<%= a.none? { |x| x > 3 } %>,<%= a.one? { |x| x == 1 } %>,<%= [nil, false].any? %>,<%= [].all? %>,<%= a.any?(2) %>,<%= a.all?(Integer) %>,<%= a.count %>,<%= a.count(2) %>,<%= a.count(&:odd?) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "true,true,true,true,false,true,true,true,3,1,2"
+  },
+  {
+    "name": "map_select_reject",
+    "template": "<% a = (1..6).to_a %><%= a.map { |x| x * x }.inspect %>,<%= a.select(&:even?).inspect %>,<%= a.filter { |x| x > 4 }.inspect %>,<%= a.reject(&:even?).inspect %>,<%= a.find { |x| x > 3 } %>,<%= a.detect { |x| x > 10 }.inspect %>,<%= a.filter_map { |x| x * 2 if x.odd? }.inspect %>,<%= a.flat_map { |x| [x, x] }.first(4).inspect %>,<%= a.collect(&:to_s).inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[1, 4, 9, 16, 25, 36],[2, 4, 6],[5, 6],[1, 3, 5],4,nil,[2, 6, 10],[1, 1, 2, 2],[\"1\", \"2\", \"3\", \"4\", \"5\", \"6\"]"
+  },
+  {
+    "name": "grouping",
+    "template": "<% a = (1..6).to_a %><%= a.group_by(&:odd?).inspect %>,<%= a.partition(&:even?).inspect %>,<%= a.each_slice(4).to_a.inspect %>,<%= a.each_cons(5).to_a.inspect %>,<%= %w[a b a].tally.inspect %>,<%= a.chunk_while { |x, y| y == x + 1 }.to_a.inspect %>,<%= [1, 2, 4, 5, 7].slice_when { |x, y| y != x + 1 }.to_a.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "{true => [1, 3, 5], false => [2, 4, 6]},[[2, 4, 6], [1, 3, 5]],[[1, 2, 3, 4], [5, 6]],[[1, 2, 3, 4, 5], [2, 3, 4, 5, 6]],{\"a\" => 2, \"b\" => 1},[[1, 2, 3, 4, 5, 6]],[[1, 2], [4, 5], [7]]"
+  },
+  {
+    "name": "take_drop",
+    "template": "<% a = [1, 2, 3, 4] %><%= a.take(2).inspect %>,<%= a.drop(2).inspect %>,<%= a.take_while { |x| x < 3 }.inspect %>,<%= a.drop_while { |x| x < 3 }.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[1, 2],[3, 4],[1, 2],[3, 4]"
+  },
+  {
+    "name": "zip_transpose",
+    "template": "<%= [1, 2].zip([3, 4], [5]).inspect %>,<%= [[1, 2], [3, 4]].transpose.inspect %>,<%= [1, 2, 3].values_at(0, 2, 5).inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[[1, 3, 5], [2, 4, nil]],[[1, 3], [2, 4]],[1, 3, nil]"
+  },
+  {
+    "name": "each_with",
+    "template": "<% %w[a b].each_with_index do |x, i| %><%= i %>:<%= x %>,<% end %><%= [1, 2].each_with_object([]) { |x, acc| acc << x * 2 }.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "0:a,1:b,[2, 4]"
+  },
+  {
+    "name": "enumerator_with_index",
+    "template": "<%= %w[a b].map.with_index { |x, i| \"#{i}#{x}\" }.inspect %>,<%= %w[a b].each.with_index(1).map { |x, i| \"#{i}#{x}\" }.inspect %>,<%= %w[a b c].select.with_index { |x, i| i != 1 }.inspect %>,<%= %w[a b].each_with_index.to_a.inspect %>,<%= 3.times.map { |i| i * 2 }.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[\"0a\", \"1b\"],[\"1a\", \"2b\"],[\"a\", \"c\"],[[\"a\", 0], [\"b\", 1]],[0, 2, 4]"
+  },
+  {
+    "name": "enumerator_inspect",
+    "template": "<%= [1, 2].each.inspect %>,<%= [1, 2, 3].each_slice(2).inspect %>,<%= [1, 2].map.size %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "#<Enumerator: [1, 2]:each>,#<Enumerator: [1, 2, 3]:each_slice(2)>,2"
+  },
+  {
+    "name": "to_h",
+    "template": "<%= [[:a, 1], [:b, 2]].to_h.inspect %>,<%= [1, 2].to_h { |x| [x, x * 2] }.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "{a: 1, b: 2},{1 => 2, 2 => 4}"
+  },
+  {
+    "name": "product_combination",
+    "template": "<%= [1, 2].product([3, 4]).inspect %>,<%= [1, 2, 3].combination(2).to_a.inspect %>,<%= [1, 2, 3].permutation(2).to_a.length %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[[1, 3], [1, 4], [2, 3], [2, 4]],[[1, 2], [1, 3], [2, 3]],6"
+  },
+  {
+    "name": "array_new",
+    "template": "<%= Array.new(3).inspect %>,<%= Array.new(2, 0).inspect %>,<%= Array.new(3) { |i| i * i }.inspect %>,<%= Array(nil).inspect %>,<%= Array([1]).inspect %>,<%= Array(1).inspect %>,<%= Array({a: 1}).inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[nil, nil, nil],[0, 0],[0, 1, 4],[],[1],[1],[[:a, 1]]"
+  },
+  {
+    "name": "compare_eq",
+    "template": "<%= [1, [2]] == [1, [2]] %>,<%= [1, 2] <=> [1] %>,<%= ([1, 'a'] <=> [1, 2]).inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "true,1,nil"
+  },
+  {
+    "name": "fill_clear_concat",
+    "template": "<% a = [1, 2] %><% a.concat([3], [4]) %><%= a.inspect %><% a.fill(0) %><%= a.inspect %><% a.clear %><%= a.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[1, 2, 3, 4][0, 0, 0, 0][]"
+  },
+  {
+    "name": "assoc_each_index_reverse_each",
+    "template": "<%= [[1, :a], [2, :b]].assoc(2).inspect %>,<% [1, 2].each_index { |i| %><%= i %><% } %>,<% [1, 2, 3].reverse_each { |x| %><%= x %><% } %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[2, :b],01,321"
+  },
+  {
+    "name": "first_on_empty",
+    "template": "<%= [].first.inspect %>,<%= [].last(2).inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "nil,[]"
+  },
+  {
+    "name": "inspect_nested",
+    "template": "<%= [1, [2, [3, {a: [4]}]], 'x', :y, nil].to_s %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[1, [2, [3, {a: [4]}]], \"x\", :y, nil]"
+  }
+]

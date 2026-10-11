@@ -1,0 +1,376 @@
+[
+  {
+    "name": "no_method_nil",
+    "template": "<%= nil.upcase %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "no_method_int",
+    "template": "<%= 5.upcase %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "no_method_string",
+    "template": "<%= 'a'.nonexistent_method %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "wrong_arg_count",
+    "template": "<%= 'a'.upcase(1, 2, 3) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "ArgumentError"
+  },
+  {
+    "name": "type_error_index",
+    "template": "<%= [1, 2]['a'] %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "TypeError"
+  },
+  {
+    "name": "raise_runtime",
+    "template": "<% raise 'boom' %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "RuntimeError"
+  },
+  {
+    "name": "raise_runtime_parens",
+    "template": "<% raise('boom') if true %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "RuntimeError"
+  },
+  {
+    "name": "syntax_bad_expr",
+    "template": "<%= 1 + %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "syntax_unterminated_string",
+    "template": "<%= 'abc %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "syntax_mismatched_paren",
+    "template": "<%= (1 + 2 %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "no_eval",
+    "template": "<%= eval('1 + 1') %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "no_send",
+    "template": "<%= 1.send(:+, 2) %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "no_public_send",
+    "template": "<%= 'x'.public_send(:upcase) %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "no_instance_eval",
+    "template": "<%= 'x'.instance_eval('upcase') %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "no_system",
+    "template": "<%= system('ls') %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "no_backticks",
+    "template": "<%= `ls` %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "no_require",
+    "template": "<% require 'socket' %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "no_kernel_open",
+    "template": "<%= open('data/lines.txt') %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "no_object_constant",
+    "template": "<%= Kernel.exit %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NameError"
+  },
+  {
+    "name": "no_env",
+    "template": "<%= ENV['HOME'] %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NameError"
+  },
+  {
+    "name": "no_file_write",
+    "template": "<% File.write('x.txt', 'data') %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "no_file_open",
+    "template": "<% File.open('data/lines.txt') %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "no_method_call",
+    "template": "<%= 1.method(:+) %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "no_globals",
+    "template": "<%= $stdout %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "no_instance_vars",
+    "template": "<%= @x %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "no_def",
+    "template": "<% def foo; end %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "no_class_def",
+    "template": "<% class Foo; end %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "no_lambda",
+    "template": "<% f = ->(x) { x } %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "no_proc_new",
+    "template": "<% f = proc { 1 } %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "no_constant_assign",
+    "template": "<% X = 1 %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "no_regexp",
+    "template": "<%= 'abc' =~ /b/ %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "no_heredoc",
+    "template": "<% x = <<~EOS\nhi\nEOS\n%>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "no_class_reflection",
+    "template": "<%= 1.class.ancestors %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "no_instance_variable_get",
+    "template": "<%= 'x'.instance_variable_get(:@a) %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "no_respond_to_private",
+    "template": "<%= 'x'.respond_to?(:system) %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "expected": "false"
+  },
+  {
+    "name": "respond_to_allowed",
+    "template": "<%= 'x'.respond_to?(:upcase) %>,<%= 1.respond_to?('times') %>,<%= nil.respond_to?(:foo) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "true,true,false"
+  },
+  {
+    "name": "no_binding",
+    "template": "<%= binding %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NameError"
+  },
+  {
+    "name": "no_object_space",
+    "template": "<%= ObjectSpace.count_objects %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NameError"
+  },
+  {
+    "name": "no_dunder_python",
+    "template": "<%= 'x'.__class__ %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "no_dunder_python_ident",
+    "template": "<%= __import__('os') %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "no_begin_rescue",
+    "template": "<% begin; 1; rescue; end %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "no_return",
+    "template": "<% return %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "no_self",
+    "template": "<%= self %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "no_yield",
+    "template": "<%= yield %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "no_defined",
+    "template": "<%= defined?(x) %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "no_splat",
+    "template": "<%= [*[1, 2]] %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "comparison_failed",
+    "template": "<%= [3, nil].max %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "ArgumentError"
+  },
+  {
+    "name": "key_error_message_type",
+    "template": "<%= {}.fetch('x') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "KeyError"
+  },
+  {
+    "name": "index_error_fetch",
+    "template": "<%= [1].fetch(5) %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "int_coerce_error",
+    "template": "<%= 1 + nil %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "TypeError"
+  },
+  {
+    "name": "error_line_number",
+    "template": "line1\n<% x = 1 %>\nline3\n<%= x.bogus %>\n",
+    "vars": {},
+    "line": 4,
+    "ruby_compatible": true,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "error_line_number_multiline_tag",
+    "template": "<%\n a = 1\n b = nil\n c = b + a\n%>",
+    "vars": {},
+    "line": 4,
+    "ruby_compatible": true,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "syntax_error_line",
+    "template": "ok\n\n<% if %>",
+    "vars": {},
+    "line": 3,
+    "ruby_compatible": false,
+    "error": "SyntaxError"
+  }
+]

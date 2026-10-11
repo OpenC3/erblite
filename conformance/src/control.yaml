@@ -1,0 +1,116 @@
+- n: if_elsif_else
+  t: "<% [1, 2, 3].each do |x| %><% if x == 1 %>one<% elsif x == 2 %>two<% else %>many<% end %>,<% end %>"
+- n: unless_else
+  t: "<% unless false %>a<% else %>b<% end %><% unless true %>c<% else %>d<% end %>"
+- n: if_expression_value
+  t: "<% v = if false then 1 else 2 end %><%= v %>,<%= (if false then 1 end).inspect %>"
+- n: modifier_if_unless
+  t: "<% x = 1 if true %><% y = 2 unless true %><%= x %>,<%= y.inspect %>"
+- n: modifier_while
+  t: "<% i = 0 %><% i += 1 while i < 5 %><%= i %>"
+- n: modifier_until
+  t: "<% i = 0 %><% i += 2 until i > 5 %><%= i %>"
+- n: while_loop
+  t: "<% i = 0 %><% while i < 3 %><%= i %><% i += 1 %><% end %>"
+- n: while_do
+  t: "<% i = 0 %><% while i < 3 do i += 1 end %><%= i %>"
+- n: until_loop
+  t: "<% i = 3 %><% until i == 0 %><%= i %><% i -= 1 %><% end %>"
+- n: while_break_next
+  t: "<% i = 0 %><% while true %><% i += 1 %><% next if i == 2 %><% break if i > 4 %><%= i %><% end %>"
+- n: for_loop
+  t: "<% for x in [1, 2, 3] %><%= x * 2 %><% end %>|<%= x %>"
+- n: for_range
+  t: "<% for i in 1..3 do %><%= i %><% end %>"
+- n: for_hash_two_vars
+  t: "<% for k, v in {a: 1, b: 2} %><%= k %>=<%= v %>;<% end %>"
+- n: loop_break_value
+  t: "<% i = 0 %><% r = loop do i += 1; break i * 10 if i == 3; end %><%= r %>"
+- n: each_break_value
+  t: "<% r = [1, 2, 3].each { |x| break x * 100 if x == 2 } %><%= r %>"
+- n: each_returns_receiver
+  t: "<% r = [1, 2].each { |x| x } %><%= r.inspect %>"
+- n: next_in_map
+  t: "<%= [1, 2, 3, 4].map { |x| next 0 if x.even?; x }.inspect %>"
+- n: next_no_value
+  t: "<%= [1, 2].map { |x| next if x == 1; x }.inspect %>"
+- n: case_values
+  t: "<% [1, 5, 'a', nil, 2.5].each do |v| %><%= case v when 1, 2 then 'low' when 3..6 then 'mid' when String then 'str' when nil then 'nil' else 'other' end %>,<% end %>"
+- n: case_no_subject
+  t: "<% x = 7 %><%= case when x < 5 then 'a' when x < 10 then 'b' end %>"
+- n: case_no_match
+  t: "<%= (case 9 when 1 then 'a' end).inspect %>"
+- n: case_class_numeric
+  t: "<%= case 1.5 when Integer then 'i' when Numeric then 'n' end %>"
+- n: case_multiline
+  t: |-
+    <%
+      x = :b
+      r = case x
+          when :a
+            1
+          when :b
+            2
+          end
+    %><%= r %>
+- n: block_scope_new_var
+  t: "<% [1].each { |i| inner = i } %><%= defined_inner = 1 %><%= inner %>"
+- n: block_scope_outer_assign
+  t: "<% total = 0 %><% [1, 2, 3].each { |i| total += i } %><%= total %>"
+- n: block_param_shadows
+  t: "<% x = 10 %><% [1, 2].each { |x| x } %><%= x %>"
+- n: var_assigned_in_untaken_branch
+  t: "<% if false %><% y = 1 %><% end %><%= y.inspect %>"
+- n: var_before_assign_is_error
+  t: "<%= z %><% z = 1 %>"
+- n: block_var_declared_outer_later
+  t: "<% [1].each { |i| w = i } %><% w = 5 %><%= w %>"
+- n: block_outer_declared_in_untaken_branch
+  t: "<% if false %><% q = 0 %><% end %><% [1, 2].each { |i| q = i } %><%= q %>"
+- n: closure_reads_outer
+  t: "<% m = 3 %><%= [1, 2].map { |x| x * m }.inspect %>"
+- n: block_auto_splat
+  t: "<%= [[1, 2], [3, 4]].map { |a, b| a + b }.inspect %>"
+- n: block_one_param_no_splat
+  t: "<%= [[1, 2], [3, 4]].map { |a| a }.inspect %>"
+- n: block_extra_params_nil
+  t: "<%= [1, 2].map { |a, b| b.inspect }.inspect %>"
+- n: block_destructure
+  t: "<%= {a: 1, b: 2}.each_with_index.map { |(k, v), i| \"#{k}#{v}#{i}\" }.join(',') %>"
+- n: nested_blocks
+  t: "<%= [1, 2].map { |a| [10, 20].map { |b| a * b } }.inspect %>"
+- n: times_loop
+  t: "<% 3.times do |i| %><%= i %><% end %>"
+- n: upto_downto
+  t: "<% 1.upto(3) { |i| %><%= i %><% } %>|<% 3.downto(1) { |i| %><%= i %><% } %>"
+- n: step_loop
+  t: "<% 1.step(10, 3) { |i| %><%= i %>,<% } %>"
+- n: break_in_times
+  t: "<% r = 10.times { |i| break i if i == 4 } %><%= r %>"
+- n: times_return
+  t: "<%= 3.times { } %>"
+- n: next_outside_loop
+  t: "<% next %>"
+  e: SyntaxError
+  oracle: false
+- n: break_outside_loop
+  t: "<% break %>"
+  e: SyntaxError
+  oracle: false
+- n: while_returns_nil
+  t: "<% i = 0 %><%= (while i < 2 do i += 1 end).inspect %>"
+- n: deep_nesting_text
+  t: |
+    <%- (1..2).each do |i| -%>
+    <%- if i.odd? -%>
+    odd <%= i %>
+    <%- else -%>
+    even <%= i %>
+    <%- end -%>
+    <%- end -%>
+- n: undefined_method_call
+  t: "<%= foo %>"
+- n: undefined_method_with_args
+  t: "<%= foo(1) %>"
+- n: block_local_not_visible
+  t: "<% [1].each { |i| bv = 1 } %><%= bv %>"

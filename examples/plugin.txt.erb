@@ -1,0 +1,21 @@
+<%# Generates a COSMOS-style plugin.txt from JSON -%>
+<%- cfg = JSON.parse(File.read("targets.json")) -%>
+<%- total = 0 -%>
+# System <%= cfg["system"] %> (<%= cfg["targets"].size %> targets)
+<%- cfg["targets"].each_with_index do |t, i| -%>
+<%-   name = t["name"].upcase -%>
+TARGET <%= name %> <%= name %>_<%= format("%02d", i + 1) %>
+INTERFACE <%= name %>_INT tcpip_client_interface.rb localhost <%= t["port"] %> <%= t["port"] + 1 %> <%= (10.0 / t["rate"]).round(2) %> nil
+<%-   if t["items"].empty? -%>
+  # no items for <%= name %>
+<%-   else -%>
+<%-     t["items"].each_slice(2).with_index do |pair, j| -%>
+  # group <%= j %>: <%= pair.join(", ") %>
+<%-       pair.each do |item| total += 1 -%>
+<%= render "_item.erb", name: item, bits: 16 * (total % 3 + 1), type: item.start_with?("V") ? "FLOAT" : "UINT", desc: "#{item.downcase} sensor" -%>
+<%-       end -%>
+<%-     end -%>
+<%-   end -%>
+<%- end -%>
+# <%= total %> items, checksum <%= format("0x%04X", cfg.to_json.bytes.sum & 0xFFFF) %>
+# rates: <%= cfg["targets"].map { |t| t["rate"] }.inspect %> avg=<%= cfg["targets"].sum { |t| t["rate"] } / cfg["targets"].size %>

@@ -1,0 +1,228 @@
+[
+  {
+    "name": "render_partial",
+    "template": "<%= render('partials/_greet.erb', name: 'Bob') %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "expected": "Hello Bob!"
+  },
+  {
+    "name": "render_partial_no_parens",
+    "template": "<%= render 'partials/_greet.erb', name: 'Amy' %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "expected": "Hello Amy!"
+  },
+  {
+    "name": "render_partial_string_keys",
+    "template": "<%= render('partials/_greet.erb', {'name' => 'Cy'}) %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "expected": "Hello Cy!"
+  },
+  {
+    "name": "render_partial_loop",
+    "template": "<%= render('partials/_item.erb', items: [1, 2]) %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "expected": "* 1\n* 2\n"
+  },
+  {
+    "name": "render_nested",
+    "template": "<%= render('partials/_nested.erb', who: 'Z') %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "expected": "AHello Z!B"
+  },
+  {
+    "name": "render_scope_isolated",
+    "template": "<% outer = 1 %><%= render('partials/_noscope.erb') %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NameError"
+  },
+  {
+    "name": "render_recursion_limit",
+    "template": "<%= render('partials/_recurse.erb', n: 1) %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "LimitError"
+  },
+  {
+    "name": "render_missing",
+    "template": "<%= render('partials/_none.erb') %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "IOError"
+  },
+  {
+    "name": "sandbox_parent_escape",
+    "template": "<%= File.read('../outside.txt') %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SecurityError"
+  },
+  {
+    "name": "sandbox_parent_escape_nested",
+    "template": "<%= File.read('data/../../outside.txt') %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SecurityError"
+  },
+  {
+    "name": "sandbox_inner_dotdot_ok",
+    "template": "<%= File.read('data/../data/lines.txt').lines.size %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "expected": "2"
+  },
+  {
+    "name": "sandbox_absolute",
+    "template": "<%= File.read('/etc/passwd') %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SecurityError"
+  },
+  {
+    "name": "sandbox_exist_outside_false",
+    "template": "<%= File.exist?('/etc/passwd') %>,<%= File.exist?('../outside.txt') %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "expected": "false,false"
+  },
+  {
+    "name": "sandbox_render_escape",
+    "template": "<%= render('../outside.txt') %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SecurityError"
+  },
+  {
+    "name": "sandbox_glob_escape",
+    "template": "<%= Dir.glob('../*').inspect %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SecurityError"
+  },
+  {
+    "name": "integer_overflow_add",
+    "template": "<%= 9223372036854775807 + 1 %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "RangeError"
+  },
+  {
+    "name": "integer_overflow_mul",
+    "template": "<%= 2 ** 64 %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "RangeError"
+  },
+  {
+    "name": "integer_overflow_shift",
+    "template": "<%= 1 << 70 %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "RangeError"
+  },
+  {
+    "name": "integer_overflow_literal",
+    "template": "<%= 99999999999999999999 %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "RangeError"
+  },
+  {
+    "name": "integer_overflow_neg",
+    "template": "<%= -(-9223372036854775807 - 1) %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "RangeError"
+  },
+  {
+    "name": "integer_overflow_float_to_i",
+    "template": "<%= 1e30.to_i %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "RangeError"
+  },
+  {
+    "name": "integer_overflow_json",
+    "template": "<%= JSON.parse('[123456789012345678901234567890]') %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "RangeError"
+  },
+  {
+    "name": "negative_exponent",
+    "template": "<%= 2 ** -1 %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "RangeError"
+  },
+  {
+    "name": "max_steps_infinite_loop",
+    "template": "<% loop do %><% end %>",
+    "vars": {},
+    "max_steps": 10000,
+    "ruby_compatible": false,
+    "error": "LimitError"
+  },
+  {
+    "name": "max_steps_while",
+    "template": "<% while true do end %>",
+    "vars": {},
+    "max_steps": 10000,
+    "ruby_compatible": false,
+    "error": "LimitError"
+  },
+  {
+    "name": "max_steps_ok",
+    "template": "<% 10.times { } %>ok",
+    "vars": {},
+    "max_steps": 10000,
+    "ruby_compatible": false,
+    "expected": "ok"
+  },
+  {
+    "name": "string_count_substring",
+    "template": "<%= 'abcabc'.count('bc') %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "expected": "2"
+  },
+  {
+    "name": "vars_types",
+    "template": "<%= s %>|<%= i + 1 %>|<%= f * 2 %>|<%= b %>|<%= n.inspect %>|<%= a.inspect %>|<%= h.inspect %>",
+    "vars": {
+      "s": "str",
+      "i": 41,
+      "f": 1.25,
+      "b": true,
+      "n": null,
+      "a": [
+        1,
+        "x",
+        [
+          2
+        ]
+      ],
+      "h": {
+        "k": {
+          "z": 1
+        }
+      }
+    },
+    "ruby_compatible": true,
+    "expected": "str|42|2.5|true|nil|[1, \"x\", [2]]|{\"k\" => {\"z\" => 1}}"
+  },
+  {
+    "name": "var_shadow_in_block_assigns_host",
+    "template": "<% [1, 2].each { |i| total = total + i } %><%= total %>",
+    "vars": {
+      "total": 10
+    },
+    "ruby_compatible": true,
+    "expected": "13"
+  }
+]

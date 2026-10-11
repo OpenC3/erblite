@@ -1,0 +1,57 @@
+- n: file_read
+  t: "<%= File.read('data/lines.txt') %>"
+- n: file_read_lines
+  t: "<% File.read('data/lines.txt').lines.each_with_index do |l, i| %><%= i %>:<%= l.chomp %>;<% end %>"
+- n: file_exist
+  t: "<%= File.exist?('data/config.json') %>,<%= File.exist?('data/nope.json') %>,<%= File.file?('data') %>,<%= File.directory?('data') %>"
+- n: file_missing
+  t: "<%= File.read('data/nope.txt') %>"
+  e: IOError
+  oracle: false
+- n: path_functions
+  t: "<%= File.basename('/a/b/c.txt') %>,<%= File.basename('/a/b/c.txt', '.txt') %>,<%= File.basename('c.rb', '.*') %>,<%= File.dirname('/a/b/c.txt') %>,<%= File.dirname('c.txt') %>,<%= File.extname('x/y.tar.gz') %>,<%= File.extname('noext') %>,<%= File.join('a', 'b', 'c.txt') %>,<%= File.join('a/', '/b') %>"
+- n: json_parse_file
+  t: |-
+    <% cfg = JSON.parse(File.read('data/config.json')) -%>
+    <%= cfg['name'] %> <%= cfg['targets'].join('/') %> <%= cfg['rate'] * 2 %> <%= cfg['count'] + 1 %> <%= cfg['enabled'] %> <%= cfg['extra'].inspect %> <%= cfg['nested']['a'][2]['b'] %>
+- n: json_parse_types
+  t: '<%= JSON.parse(''{"a": [1, 2.5, -3, 1e2, 1E-2, true, false, null, "sé\n"]}'').inspect %>'
+- n: json_parse_symbolize
+  t: '<%= JSON.parse(''{"a": {"b": 1}}'', symbolize_names: true).inspect %>'
+- n: json_parse_scalar
+  t: "<%= JSON.parse('3').inspect %>,<%= JSON.parse('\"x\"').inspect %>,<%= JSON.parse('[]').inspect %>"
+- n: json_parse_error
+  t: "<%= JSON.parse('{bad json}') %>"
+- n: json_parse_trailing_comma
+  t: "<%= JSON.parse('[1, 2,]') %>"
+  e: JSON::ParserError
+  oracle: false
+- n: json_parse_duplicate_keys
+  t: '<%= JSON.parse(''{"a": 1, "a": 2}'').inspect %>'
+- n: json_generate
+  t: '<%= JSON.generate({"a" => 1, b: [1, 2.5, nil, true], c: {d: "x\"y\n\\/é\u0001"}, 1 => :sym}) %>'
+- n: to_json
+  t: "<%= [1, 'two', nil, 3.0, 1e20].to_json %>,<%= 'str'.to_json %>,<%= nil.to_json %>,<%= 42.to_json %>,<%= {a: {}}.to_json %>,<%= :s.to_json %>"
+  x: '[1,"two",null,3.0,1.0e+20],"str",null,42,{"a":{}},"s"'
+  oracle: false
+- n: json_float_formats
+  t: "<%= JSON.generate([0.1, 1.0e-5, 1e15, 1e16, 123456789.125, -0.0, 1.0/3, 5e-324]) %>"
+  x: '[0.1,1.0e-05,1.0e+15,1.0e+16,123456789.125,-0.0,0.3333333333333333,5.0e-324]'
+  oracle: false
+- n: json_parse_comments
+  t: "<%= JSON.parse(\"{ // c\\n \\\"a\\\": /* x */ 1}\").inspect %>"
+- n: json_pretty
+  t: '<%= JSON.pretty_generate({"a" => 1, "b" => [1, [2, 3], {}], "c" => {"d" => []}, "e" => {"f" => nil}}) %>'
+- n: json_pretty_scalar_array
+  t: "<%= JSON.pretty_generate([]) %>|<%= JSON.pretty_generate([1]) %>|<%= JSON.pretty_generate('s') %>"
+- n: json_nan_error
+  t: "<%= JSON.generate([Float::NAN]) %>"
+- n: json_roundtrip
+  t: "<% data = {'list' => [1, 2], 'name' => 'n'} %><%= JSON.parse(JSON.generate(data)) == data %>"
+- n: json_unicode_escape
+  t: '<%= JSON.parse(''"\\u00e9\\ud83d\\ude00"'') %>'
+- n: dir_glob
+  t: "<%= Dir.glob('partials/*.erb').inspect %>"
+  x: '["partials/_greet.erb", "partials/_item.erb", "partials/_nested.erb", "partials/_noscope.erb", "partials/_recurse.erb"]'
+- n: dir_glob_recursive
+  t: "<%= Dir.glob('**/*.json').inspect %>"

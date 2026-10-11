@@ -1,0 +1,16 @@
+[package]
+name = "erblite"
+version = "0.1.0"
+edition = "2021"
+description = "Sandboxed ERB-syntax template engine running a safe subset of Ruby"
+license = "MIT"
+
+[lib]
+name = "erblite"
+path = "src/lib.rs"
+
+[[bin]]
+name = "erblite"
+path = "src/bin/erblite.rs"
+
+[dependencies]

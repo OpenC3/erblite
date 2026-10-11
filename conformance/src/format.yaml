@@ -1,0 +1,42 @@
+- n: integers
+  t: "<%= format('%d|%5d|%-5d|%05d|%+d|% d|%x|%X|%#x|%o|%#o|%b|%#b|%08b|%i|%u', 42, 42, 42, 42, 42, 42, 255, 255, 255, 8, 8, 5, 5, 5, 7, 9) %>"
+- n: negative_ints
+  t: "<%= format('%d|%5d|%05d|%+x|% o', -42, -42, -42, -255, -8) %>"
+- n: floats
+  t: "<%= format('%f|%.2f|%8.3f|%-8.1f|%08.2f|%+.1f|%.0f|%.0f|%.0f|%#.0f', 3.14159, 3.14159, 3.14159, 3.14159, -3.14159, 2.0, 2.5, 3.5, 0.5, 3.0) %>"
+- n: exp_g
+  t: "<%= format('%e|%.2e|%E|%g|%g|%g|%g|%g|%G|%.3g|%#g|%g|%g', 12345.678, 0.000123, 1.5, 0.0001, 0.00001, 1e20, 123456789.0, 100000.0, 1e-10, 3.14159, 1.0, 1e6, 123456.0) %>"
+- n: strings_p_c
+  t: "<%= format('%s|%10s|%-10s|%.2s|%p|%p|%c|%c|%%', 'hello', 'hi', 'hi', 'hello', 'q', :s, 65, 'xyz') %>"
+- n: int_from_float_and_string
+  t: "<%= format('%d,%d,%d,%x', 3.99, -3.99, '42', 255.9) %>"
+- n: float_from_int
+  t: "<%= format('%.2f|%e', 3, 10) %>"
+- n: string_percent
+  t: "<%= '%05.1f' % 2.25 %>|<%= '%s-%s' % ['a', 'b'] %>|<%= '%d%%' % 50 %>|<%= 'TEMP%02d' % 3 %>"
+- n: named
+  t: "<%= format('%<a>d-%<b>s', a: 1, b: 'x') %>|<%= format('%{a}/%{b}', a: 1, b: 'x') %>|<%= format('%<f>.2f', f: 1.234) %>"
+- n: star_width
+  t: "<%= format('%*d|%-*d|%.*f', 5, 1, 4, 2, 2, 3.14159) %>"
+- n: too_few_args
+  t: "<%= format('%d %d', 1) %>"
+- n: nan_inf
+  t: "<%= format('%f|%f|%.2e|%g|%5.1f', Float::NAN, Float::INFINITY, -Float::INFINITY, Float::NAN, Float::INFINITY) %>"
+- n: big_values
+  t: "<%= format('%.3f|%e|%g|%.10f', 1e20, 9.999999e99, 1e-300, 1.0/3) %>"
+- n: sprintf_alias
+  t: "<%= sprintf('%03d', 7) %>"
+- n: precision_on_int
+  t: "<%= format('%.3d|%8.3d|%.0d', 5, 5, 0) %>"
+- n: hex_uppercase_prefix
+  t: "<%= format('%#X|%#B|%#o', 255, 5, 0) %>"
+- n: float_rounding_ties
+  t: "<%= format('%.1f|%.1f|%.1f|%.2f|%.2f', 0.25, 0.35, 0.45, 1.005, 2.675) %>"
+- n: s_with_nil_array
+  t: "<%= format('%s|%s|%s', nil, [1, 'a'], {a: 1}) %>"
+- n: negative_hex_error
+  t: "<%= format('%x', -255) %>"
+  e: ArgumentError
+  oracle: false
+- n: bad_directive
+  t: "<%= format('%y', 1) %>"

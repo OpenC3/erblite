@@ -1,0 +1,185 @@
+- n: no_method_nil
+  t: "<%= nil.upcase %>"
+- n: no_method_int
+  t: "<%= 5.upcase %>"
+- n: no_method_string
+  t: "<%= 'a'.nonexistent_method %>"
+- n: wrong_arg_count
+  t: "<%= 'a'.upcase(1, 2, 3) %>"
+- n: type_error_index
+  t: "<%= [1, 2]['a'] %>"
+- n: raise_runtime
+  t: "<% raise 'boom' %>"
+- n: raise_runtime_parens
+  t: "<% raise('boom') if true %>"
+- n: syntax_bad_expr
+  t: "<%= 1 + %>"
+- n: syntax_unterminated_string
+  t: "<%= 'abc %>"
+- n: syntax_mismatched_paren
+  t: "<%= (1 + 2 %>"
+- n: no_eval
+  t: "<%= eval('1 + 1') %>"
+  e: NoMethodError
+  oracle: false
+- n: no_send
+  t: "<%= 1.send(:+, 2) %>"
+  e: NoMethodError
+  oracle: false
+- n: no_public_send
+  t: "<%= 'x'.public_send(:upcase) %>"
+  e: NoMethodError
+  oracle: false
+- n: no_instance_eval
+  t: "<%= 'x'.instance_eval('upcase') %>"
+  e: NoMethodError
+  oracle: false
+- n: no_system
+  t: "<%= system('ls') %>"
+  e: NoMethodError
+  oracle: false
+- n: no_backticks
+  t: "<%= `ls` %>"
+  e: SyntaxError
+  oracle: false
+- n: no_require
+  t: "<% require 'socket' %>"
+  e: NoMethodError
+  oracle: false
+- n: no_kernel_open
+  t: "<%= open('data/lines.txt') %>"
+  e: NoMethodError
+  oracle: false
+- n: no_object_constant
+  t: "<%= Kernel.exit %>"
+  e: NameError
+  oracle: false
+- n: no_env
+  t: "<%= ENV['HOME'] %>"
+  e: NameError
+  oracle: false
+- n: no_file_write
+  t: "<% File.write('x.txt', 'data') %>"
+  e: NoMethodError
+  oracle: false
+- n: no_file_open
+  t: "<% File.open('data/lines.txt') %>"
+  e: NoMethodError
+  oracle: false
+- n: no_method_call
+  t: "<%= 1.method(:+) %>"
+  e: NoMethodError
+  oracle: false
+- n: no_globals
+  t: "<%= $stdout %>"
+  e: SyntaxError
+  oracle: false
+- n: no_instance_vars
+  t: "<%= @x %>"
+  e: SyntaxError
+  oracle: false
+- n: no_def
+  t: "<% def foo; end %>"
+  e: SyntaxError
+  oracle: false
+- n: no_class_def
+  t: "<% class Foo; end %>"
+  e: SyntaxError
+  oracle: false
+- n: no_lambda
+  t: "<% f = ->(x) { x } %>"
+  e: SyntaxError
+  oracle: false
+- n: no_proc_new
+  t: "<% f = proc { 1 } %>"
+  e: NoMethodError
+  oracle: false
+- n: no_constant_assign
+  t: "<% X = 1 %>"
+  e: SyntaxError
+  oracle: false
+- n: no_regexp
+  t: "<%= 'abc' =~ /b/ %>"
+  e: SyntaxError
+  oracle: false
+- n: no_heredoc
+  t: "<% x = <<~EOS\nhi\nEOS\n%>"
+  e: SyntaxError
+  oracle: false
+- n: no_class_reflection
+  t: "<%= 1.class.ancestors %>"
+  e: NoMethodError
+  oracle: false
+- n: no_instance_variable_get
+  t: "<%= 'x'.instance_variable_get(:@a) %>"
+  e: NoMethodError
+  oracle: false
+- n: no_respond_to_private
+  t: "<%= 'x'.respond_to?(:system) %>"
+  x: "false"
+  oracle: false
+- n: respond_to_allowed
+  t: "<%= 'x'.respond_to?(:upcase) %>,<%= 1.respond_to?('times') %>,<%= nil.respond_to?(:foo) %>"
+- n: no_binding
+  t: "<%= binding %>"
+  e: NameError
+  oracle: false
+- n: no_object_space
+  t: "<%= ObjectSpace.count_objects %>"
+  e: NameError
+  oracle: false
+- n: no_dunder_python
+  t: "<%= 'x'.__class__ %>"
+  e: NoMethodError
+  oracle: false
+- n: no_dunder_python_ident
+  t: "<%= __import__('os') %>"
+  e: NoMethodError
+  oracle: false
+- n: no_begin_rescue
+  t: "<% begin; 1; rescue; end %>"
+  e: SyntaxError
+  oracle: false
+- n: no_return
+  t: "<% return %>"
+  e: SyntaxError
+  oracle: false
+- n: no_self
+  t: "<%= self %>"
+  e: SyntaxError
+  oracle: false
+- n: no_yield
+  t: "<%= yield %>"
+  e: SyntaxError
+  oracle: false
+- n: no_defined
+  t: "<%= defined?(x) %>"
+  e: SyntaxError
+  oracle: false
+- n: no_splat
+  t: "<%= [*[1, 2]] %>"
+  e: SyntaxError
+  oracle: false
+- n: comparison_failed
+  t: "<%= [3, nil].max %>"
+- n: key_error_message_type
+  t: "<%= {}.fetch('x') %>"
+- n: index_error_fetch
+  t: "<%= [1].fetch(5) %>"
+  e: NoMethodError
+  oracle: false
+- n: int_coerce_error
+  t: "<%= 1 + nil %>"
+- n: error_line_number
+  t: "line1\n<% x = 1 %>\nline3\n<%= x.bogus %>\n"
+  e: NoMethodError
+  line: 4
+- n: error_line_number_multiline_tag
+  t: "<%\n a = 1\n b = nil\n c = b + a\n%>"
+  e: NoMethodError
+  line: 4
+- n: syntax_error_line
+  t: "ok\n\n<% if %>"
+  e: SyntaxError
+  line: 3
+  oracle: false

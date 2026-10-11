@@ -1,0 +1,212 @@
+[
+  {
+    "name": "case_methods",
+    "template": "<% s = 'hEllo World' %><%= s.upcase %>|<%= s.downcase %>|<%= s.capitalize %>|<%= s.swapcase %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "HELLO WORLD|hello world|Hello world|HeLLO wORLD"
+  },
+  {
+    "name": "strip_family",
+    "template": "<% s = \"  \\t hi \\n \" %>[<%= s.strip %>][<%= s.lstrip %>][<%= s.rstrip %>]",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[hi][hi \n ][  \t hi]"
+  },
+  {
+    "name": "chomp_chop",
+    "template": "<%= \"a\\n\".chomp.inspect %>,<%= \"a\\r\\n\".chomp.inspect %>,<%= 'hello'.chomp('lo') %>,<%= 'abc'.chop %>,<%= \"a\\n\\n\".chomp.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "\"a\",\"a\",hel,ab,\"a\\n\""
+  },
+  {
+    "name": "length_size",
+    "template": "<%= 'héllo'.length %>,<%= 'abc'.size %>,<%= 'héllo'.bytesize %>,<%= ''.empty? %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "5,3,6,true"
+  },
+  {
+    "name": "index_access",
+    "template": "<% s = 'hello' %><%= s[0] %>,<%= s[-1] %>,<%= s[1, 3] %>,<%= s[1..3] %>,<%= s[1...-1] %>,<%= s[10].inspect %>,<%= s[5].inspect %>,<%= s[5, 2].inspect %>,<%= s[2..] %>,<%= s.slice(0, 2) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "h,o,ell,ell,ell,nil,nil,\"\",llo,he"
+  },
+  {
+    "name": "search",
+    "template": "<% s = 'hello world' %><%= s.include?('lo w') %>,<%= s.start_with?('he', 'x') %>,<%= s.end_with?('x') %>,<%= s.index('o') %>,<%= s.index('o', 5) %>,<%= s.rindex('o') %>,<%= s.index('z').inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "true,true,false,4,7,7,nil"
+  },
+  {
+    "name": "sub_gsub",
+    "template": "<% s = 'a.b.c' %><%= s.sub('.', '-') %>,<%= s.gsub('.', '-') %>,<%= s.gsub('.', '[\\\\0]') %>,<%= s.gsub('.') { |m| '!' } %>,<%= 'aaa'.gsub('a', 'a' => '1') %>,<%= s.gsub('x', 'y') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "a-b.c,a-b-c,a[.]b[.]c,a!b!c,111,a.b.c"
+  },
+  {
+    "name": "gsub_backrefs",
+    "template": "<%= 'abc'.sub('b', '<\\\\`|\\\\&|\\\\\\'>') %>,<%= 'abc'.sub('b', '\\\\\\\\') %>,<%= 'abc'.sub('b', '\\\\1') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "a<a|b|c>c,a\\c,ac"
+  },
+  {
+    "name": "split",
+    "template": "<%= 'a,b,,c,,'.split(',').inspect %>|<%= '  a  b c '.split.inspect %>|<%= 'a b'.split(' ').inspect %>|<%= 'abc'.split('').inspect %>|<%= ''.split(',').inspect %>|<%= 'a,b,c'.split(',', 2).inspect %>|<%= 'a,b,,'.split(',', -1).inspect %>|<%= 'a--b--c'.split('--').inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[\"a\", \"b\", \"\", \"c\"]|[\"a\", \"b\", \"c\"]|[\"a\", \"b\"]|[\"a\", \"b\", \"c\"]|[]|[\"a\", \"b,c\"]|[\"a\", \"b\", \"\", \"\"]|[\"a\", \"b\", \"c\"]"
+  },
+  {
+    "name": "justify",
+    "template": "[<%= 'ab'.center(7, '*') %>][<%= 'ab'.ljust(5) %>][<%= 'ab'.rjust(5, '0') %>][<%= 'abc'.center(2) %>][<%= 'ab'.center(6, '12') %>]",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[**ab***][ab   ][000ab][abc][12ab12]"
+  },
+  {
+    "name": "conversions",
+    "template": "<%= '12abc'.to_i %>,<%= '  -42'.to_i %>,<%= 'abc'.to_i %>,<%= '1_000'.to_i %>,<%= 'ff'.to_i(16) %>,<%= '0x1A'.to_i(16) %>,<%= '0x1A'.hex %>,<%= '-ff'.hex %>,<%= '777'.oct %>,<%= '101'.to_i(2) %>,<%= '1.5e3'.to_f %>,<%= '.5'.to_f %>,<%= 'abc'.to_f %>,<%= '3.7xyz'.to_f %>,<%= '1e'.to_f %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "12,-42,0,1000,255,26,26,-255,511,5,1500.0,0.5,0.0,3.7,1.0"
+  },
+  {
+    "name": "to_sym_inspect",
+    "template": "<%= 'abc'.to_sym.inspect %>,<%= 'a b'.to_sym.inspect %>,<%= 'x='.to_sym.inspect %>,<%= '+'.to_sym.inspect %>,<%= '9a'.to_sym.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": ":abc,:\"a b\",:x=,:+,:\"9a\""
+  },
+  {
+    "name": "inspect_escapes",
+    "template": "<%= \"q\\\"b\\\\s\\n\\t\\r\\e\\a\\b\\f\\v\\0\\x01\\x7F é\".inspect %>|<%= '#{x} #$y #@z #a'.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "\"q\\\"b\\\\s\\n\\t\\r\\e\\a\\b\\f\\v\\u0000\\u0001\\u007F é\"|\"\\#{x} \\#$y \\#@z #a\""
+  },
+  {
+    "name": "chars_lines_bytes",
+    "template": "<%= 'héy'.chars.inspect %>,<%= \"a\\nb\\n\".lines.inspect %>,<%= 'AB'.bytes.inspect %>,<%= 'A'.ord %>,<%= 'é'.ord %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[\"h\", \"é\", \"y\"],[\"a\\n\", \"b\\n\"],[65, 66],65,233"
+  },
+  {
+    "name": "reverse_count_tr",
+    "template": "<%= 'abc'.reverse %>,<%= 'hello'.count('l') %>,<%= 'hello'.tr('el', 'ip') %>,<%= 'hello'.tr('a-y', 'b-z') %>,<%= 'hello'.tr('^l', '*') %>,<%= 'hello'.delete('l') %>,<%= 'aaabbb'.squeeze %>,<%= 'hello'.tr('elo', 'x') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "cba,2,hippo,ifmmp,**ll*,heo,ab,hxxxx"
+  },
+  {
+    "name": "each_char",
+    "template": "<% 'abc'.each_char do |c| %>[<%= c %>]<% end %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[a][b][c]"
+  },
+  {
+    "name": "each_line",
+    "template": "<% \"a\\nb\".each_line do |l| %>(<%= l.inspect %>)<% end %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "(\"a\\n\")(\"b\")"
+  },
+  {
+    "name": "partition",
+    "template": "<%= 'a=b=c'.partition('=').inspect %>,<%= 'a=b=c'.rpartition('=').inspect %>,<%= 'abc'.partition('x').inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[\"a\", \"=\", \"b=c\"],[\"a=b\", \"=\", \"c\"],[\"abc\", \"\", \"\"]"
+  },
+  {
+    "name": "casecmp",
+    "template": "<%= 'abc'.casecmp('ABC') %>,<%= 'abc'.casecmp?('ABC') %>,<%= 'a'.casecmp('b') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "0,true,-1"
+  },
+  {
+    "name": "string_compare",
+    "template": "<%= 'abc' == 'abc' %>,<%= 'a' <=> 'b' %>,<%= 'b' > 'a' %>,<%= 'a'.between?('a', 'c') %>,<%= ('a' <=> 1).inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "true,-1,true,true,nil"
+  },
+  {
+    "name": "string_mul_errors",
+    "template": "<%= 'a' * -1 %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "ArgumentError"
+  },
+  {
+    "name": "ascii_only",
+    "template": "<%= 'abc'.ascii_only? %>,<%= 'é'.ascii_only? %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "true,false"
+  },
+  {
+    "name": "shovel_variable",
+    "template": "<% s = 'a' %><% s << 'b' << 'c' %><%= s %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "abc"
+  },
+  {
+    "name": "shovel_in_hash",
+    "template": "<% h = {k: 'x'} %><% h[:k] << 'y' %><%= h[:k] %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "xy"
+  },
+  {
+    "name": "shovel_non_string_value",
+    "template": "<% s = 'n' %><% s << 1.to_s %><%= s %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "n1"
+  },
+  {
+    "name": "string_symbols",
+    "template": "<%= :abc.to_s %>,<%= :abc.length %>,<%= :abc.upcase.inspect %>,<%= :b <=> :a %>,<%= :abc.to_sym.inspect %>,<%= :abc.start_with?('a') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "abc,3,:ABC,1,:abc,true"
+  },
+  {
+    "name": "interpolation_inspect",
+    "template": "<%= \"#{[1, \"a\"]} #{{a: \"b\"}} #{:s} #{1.0}\" %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[1, \"a\"] {a: \"b\"} s 1.0"
+  },
+  {
+    "name": "freeze_dup",
+    "template": "<% s = 'abc'.freeze %><%= s.frozen? %>,<%= 1.frozen? %>,<%= s.dup %>,<%= nil.frozen? %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "true,true,abc,true"
+  },
+  {
+    "name": "unicode_upcase",
+    "template": "<%= 'éàü'.upcase %>,<%= 'ÉÀÜ'.downcase %>,<%= 'émile'.capitalize %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "ÉÀÜ,éàü,Émile"
+  },
+  {
+    "name": "split_limit_one",
+    "template": "<%= '  pad  '.split(nil, 1).inspect %>,<%= ' a b'.split(' ', 1).inspect %>,<%= ''.split(',', 1).inspect %>,<%= 'a,b'.split('', 1).inspect %>,<%= ' a b '.split(nil, 2).inspect %>,<%= ' a b '.split(nil, -1).inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[\"  pad  \"],[\" a b\"],[],[\"a,b\"],[\"a\", \"b \"],[\"a\", \"b\", \"\"]"
+  }
+]

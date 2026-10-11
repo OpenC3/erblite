@@ -1,0 +1,117 @@
+- n: bang_precedence
+  t: "<%= !1 == 2 %>,<%= !nil == true %>,<%= !true && false %>"
+- n: bare_unknown_name_error
+  t: "<%= puts %>"
+  e: NameError
+  oracle: false
+- n: unknown_call_with_args
+  t: "<%= puts('x') %>"
+  e: NoMethodError
+  oracle: false
+- n: unknown_call_with_command_arg
+  t: "<%= system 'ls' %>"
+  e: NoMethodError
+  oracle: false
+- n: command_arg_paren_space
+  t: "<%= [1, 2, 3].include? (2) %>,<%= 3.7.round (0) %>"
+- n: command_arg_negative_number
+  t: "<% a = [3] %><% a.push -1 %><%= a.inspect %>"
+- n: local_minus_number
+  t: "<% x = 5 %><%= x -1 %>,<%= x - 1 %>"
+- n: host_var_minus_number
+  t: "<%= y -1 %>"
+  v: {y: 10}
+- n: command_arg_bang
+  t: "<%= [true].include? !false %>"
+- n: shovel_codepoint
+  t: "<% s = 'a' %><% s << 66 %><%= s %>"
+- n: shovel_type_error
+  t: "<% s = 'a' %><% s << nil %>"
+- n: frozen_array_mutation
+  t: "<% a = [1].freeze %><% a << 2 %>"
+- n: frozen_hash_mutation
+  t: "<% h = {a: 1}.freeze %><% h[:b] = 2 %>"
+- n: frozen_queries
+  t: "<%= [1].freeze.frozen? %>,<%= [1].frozen? %>,<%= 'a'.frozen? %>,<%= :a.frozen? %>,<%= [1].freeze.dup.frozen? %>,<%= [1].freeze.map { |x| x }.frozen? %>"
+- n: frozen_string_shovel
+  t: "<% s = 'a'.freeze %><% s << 'b' %><%= s %>"
+  x: "ab"
+  oracle: false
+- n: split_nil_and_nul
+  t: "<%= \"a\\0b c\".split.inspect %>,<%= \" \\0a\\0 \".strip.inspect %>,<%= \"\\0 a\".lstrip.inspect %>"
+- n: octal_escapes
+  t: '<%= "\101\60\0".inspect %>'
+- n: symbol_inspect_variants
+  t: "<%= 'a?'.to_sym.inspect %>,<%= 'é'.to_sym.inspect %>,<%= '@a'.to_sym.inspect %>,<%= 'A'.to_sym.inspect %>,<%= '[]'.to_sym.inspect %>,<%= {'a=': 1, 'é': 2, 'B': 3}.inspect %>"
+- n: string_inspect_unicode_controls
+  t: '<%= "\u0085\u2028\u00a0x".inspect %>'
+- n: output_tag_statement_modifier
+  t: "<%= 'y' if true %>|<%= 'n' if false %>|<%= %>|"
+- n: text_statement_value
+  t: "<% x = if true %>hi<% end %>[<%= x %>]"
+  x: "hi[hi]"
+  oracle: false
+- n: text_statement_value_in_block
+  t: "<% r = [1, 2].map { %>a<% } %>|<%= r.inspect %>"
+  x: 'aa|["a", "aa"]'
+  oracle: false
+- n: trim_after_inline_close
+  t: "<%= 1 %>  <%- x = 1 %>y"
+- n: trim_after_escaped_open
+  t: "a <%% b  <%- x = 1 -%>\nc"
+- n: hash_block_arity
+  t: "<% h = {a: 1} %><%= h.select { |x| x == :a }.size %>,<%= h.reject { |x| x == :a }.size %>,<%= h.filter_map { |x| x }.inspect %>,<%= h.transform_values { |x| x.inspect }.inspect %>,<%= h.transform_keys { |x| x.inspect }.inspect %>,<%= h.min_by { |x| x }.inspect %>,<%= h.count { |x| x.is_a?(Array) } %>,<% h.each_key { |x| %><%= x.inspect %><% } %>"
+- n: eql_and_case_equality
+  t: "<%= 1.eql?(1) %>,<%= 1.eql?(1.0) %>,<%= 'a'.eql?('a') %>,<%= Integer === 3 %>,<%= (1..3) === 2 %>,<%= 'a' === 'a' %>,<%= (nil <=> nil) %>"
+- n: float_floor_ceil_digits
+  t: "<%= 75.933.ceil(4) %>,<%= 1.23456.floor(2) %>,<%= -1.23456.ceil(3) %>,<%= 12345.6789.floor(-2) %>,<%= 2.5.ceil(0) %>,<%= 0.1.floor(20) %>"
+- n: float_round_many_digits
+  t: "<%= 0.1.round(15) %>,<%= 1.0e-10.round(15) %>,<%= 0.123456789012345678.round(16) %>,<%= 1.5e-7.round(16) %>"
+- n: intermediate_bignum
+  t: "<%= -2 ** 63 %>"
+  e: RangeError
+  oracle: false
+- n: chr_high
+  t: "<%= 200.chr.ord %>"
+  x: "200"
+  oracle: false
+- n: enumerator_alias_inspect
+  t: "<%= [1].collect.inspect %>,<%= {a: 1}.each_pair.inspect %>,<%= 1.step(10, 3).inspect %>,<%= (1..10).step(2).inspect %>,<%= [1, 2].each_with_index.inspect %>"
+- n: multi_value_assign_array
+  t: "<% a = 1, 2 %><%= a.inspect %>"
+- n: operator_method_calls
+  t: "<%= 1.+(2) %>,<%= [5, 6].[](1) %>,<%= 2.*(3) %>"
+- n: endless_beginless_ranges_index
+  t: "<%= 'hello'[..1] %>,<%= 'hello'[3..] %>,<%= [1, 2, 3][1..].inspect %>,<%= [1, 2, 3][...-1].inspect %>"
+- n: string_to_i_whitespace
+  t: "<%= \"\\n\\t 12\".to_i %>,<%= \"\\v3.5\".to_f %>,<%= \"\\0 5\".to_i %>"
+- n: format_positional
+  t: "<%= format('%2$s %1$s', 'a', 'b') %>"
+- n: format_percent_with_flags_error
+  t: "<%= format('%5%') %>"
+- n: size_cap_string
+  t: "<%= ('a' * 20_000_000).size %>"
+  e: LimitError
+  oracle: false
+- n: size_cap_array
+  t: "<%= ([0] * 20_000_000).size %>"
+  e: LimitError
+  oracle: false
+- n: size_cap_range_to_a
+  t: "<%= (1..20_000_000).to_a.size %>"
+  e: LimitError
+  oracle: false
+- n: range_large_sum_ok
+  t: "<%= (1..20_000_000).sum %>,<%= (1..20_000_000).size %>,<%= (1..20_000_000).include?(5) %>"
+- n: json_depth_limit
+  t: "<%= JSON.parse('[' * 101 + ']' * 101) %>"
+- n: json_parse_infinity_literal
+  t: "<%= JSON.parse('[1e400]').inspect %>"
+- n: json_lone_surrogate
+  t: '<%= JSON.parse(''"\\ud800"'') %>'
+- n: json_leading_zero
+  t: "<%= JSON.parse('[01]') %>"
+- n: chunk_while_returns
+  t: "<%= [1, 2, 4].chunk_while { |a, b| b == a + 1 }.to_a.inspect %>"
+- n: output_tag_multiple_statements
+  t: "<%= a = 2; a * 3 %>|<%= 1\n2 %>"

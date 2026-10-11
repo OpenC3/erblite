@@ -1,0 +1,57 @@
+- n: access
+  t: "<% h = {'a' => 1, b: 2, 3 => 'c'} %><%= h['a'] %>,<%= h[:b] %>,<%= h[3] %>,<%= h['b'].inspect %>,<%= h.fetch('a') %>,<%= h.fetch('z', 0) %>,<%= h.fetch('z') { |k| k * 2 } %>,<%= h.dig(:b) %>"
+- n: fetch_missing
+  t: "<%= {a: 1}.fetch(:b) %>"
+- n: dig_nested
+  t: "<% h = {a: {b: [10, {c: 'deep'}]}} %><%= h.dig(:a, :b, 1, :c) %>,<%= h.dig(:a, :x, :y).inspect %>"
+- n: assign_and_order
+  t: "<% h = {} %><% h[:z] = 1; h[:a] = 2; h[:z] = 3; h.store(:m, 4) %><%= h.inspect %>,<%= h.keys.inspect %>,<%= h.values.inspect %>"
+- n: key_eql
+  t: "<% h = {1 => 'int'} %><% h[1.0] = 'float' %><%= h.inspect %>,<%= h.size %>"
+- n: array_keys
+  t: "<% h = {[1, 2] => 'pair'} %><%= h[[1, 2]] %>"
+- n: string_key_copied
+  t: "<% k = 'k'; h = {k => 1}; k << 'x' %><%= h.inspect %>"
+- n: default_value
+  t: "<% h = Hash.new(0) %><% %w[a b a].each { |w| h[w] += 1 } %><%= h.inspect %>,<%= h['zz'] %>,<%= h.default %>"
+- n: queries
+  t: "<% h = {a: 1, b: 2} %><%= h.key?(:a) %>,<%= h.has_key?(:z) %>,<%= h.include?(:b) %>,<%= h.member?(:a) %>,<%= h.value?(2) %>,<%= h.has_value?(5) %>,<%= h.key(2).inspect %>,<%= h.length %>,<%= h.size %>,<%= h.empty? %>,<%= {}.empty? %>"
+- n: each
+  t: "<% {a: 1, b: 2}.each do |k, v| %><%= k %>=<%= v %>;<% end %>|<% {a: 1}.each_pair { |k, v| %><%= k.inspect %><%= v %><% } %>|<% {a: 1}.each { |pair| %><%= pair.inspect %><% } %>"
+- n: each_key_value
+  t: "<% {a: 1, b: 2}.each_key { |k| %><%= k %><% } %>,<% {a: 1, b: 2}.each_value { |v| %><%= v %><% } %>"
+- n: map_select
+  t: "<% h = {a: 1, b: 2, c: 3} %><%= h.map { |k, v| \"#{k}#{v}\" }.inspect %>,<%= h.select { |k, v| v > 1 }.inspect %>,<%= h.reject { |k, v| v > 1 }.inspect %>,<%= h.filter_map { |k, v| k if v.odd? }.inspect %>,<%= h.find { |k, v| v == 2 }.inspect %>,<%= h.count { |k, v| v > 1 } %>,<%= h.any? { |k, v| v > 2 } %>,<%= h.all? { |k, v| v > 0 } %>"
+- n: select_single_param
+  t: "<%= {a: 1}.select { |k| k == :a }.inspect %>,<%= {a: 1}.map { |x| x }.inspect %>"
+- n: sorting
+  t: "<% h = {b: 2, a: 3, c: 1} %><%= h.sort_by { |k, v| v }.inspect %>,<%= h.min_by { |k, v| v }.inspect %>,<%= h.max_by { |k, v| v }.inspect %>,<%= h.sort.inspect %>,<%= h.sort_by { |k, v| -v }.to_h.inspect %>,<%= h.sum { |k, v| v } %>"
+- n: transform
+  t: "<% h = {a: 1, b: 2} %><%= h.transform_values { |v| v * 10 }.inspect %>,<%= h.transform_keys(&:to_s).inspect %>,<%= h.invert.inspect %>,<%= h.to_a.inspect %>,<%= h.to_h { |k, v| [v, k] }.inspect %>"
+- n: merge
+  t: "<% h = {a: 1, b: 2} %><%= h.merge({b: 3, c: 4}).inspect %>,<%= h.merge({b: 3}) { |k, o, n| o + n }.inspect %>,<%= h.inspect %><% h.merge!({d: 5}) %>,<%= h.inspect %><% h.update(e: 6) %>,<%= h.size %>"
+- n: delete_slice_except
+  t: "<% h = {a: 1, b: 2, c: 3, d: nil} %><%= h.delete(:a) %>,<%= h.delete(:zz).inspect %>,<%= h.slice(:b, :c).inspect %>,<%= h.except(:b).inspect %>,<%= h.compact.inspect %>,<%= h.values_at(:b, :q).inspect %>,<%= h.fetch_values(:b, :c).inspect %>"
+- n: delete_if
+  t: "<% h = {a: 1, b: 2} %><% h.delete_if { |k, v| v == 1 } %><%= h.inspect %>"
+- n: group_partition
+  t: "<% h = {a: 1, b: 2, c: 3} %><%= h.group_by { |k, v| v.odd? }.inspect %>,<%= h.partition { |k, v| v > 1 }.inspect %>,<%= h.each_with_index.map { |(k, v), i| \"#{k}#{v}#{i}\" }.inspect %>"
+- n: reduce_with_object
+  t: "<% h = {a: 1, b: 2} %><%= h.inject(0) { |s, (k, v)| s + v } %>,<%= h.each_with_object({}) { |(k, v), acc| acc[v] = k }.inspect %>"
+- n: first
+  t: "<% h = {a: 1, b: 2} %><%= h.first.inspect %>,<%= h.first(1).inspect %>"
+- n: inspect_formats
+  t: "<%= {'a' => 1, b: 2, :\"c d\" => 3, 1 => nil, [1] => 2.0, nil => true, e?: 1}.inspect %>"
+- n: to_s_in_text
+  t: "<%= {a: {b: 'c'}} %>"
+- n: reference_semantics
+  t: "<% h = {}; g = h; g[:x] = 1 %><%= h.inspect %>"
+- n: hash_equality
+  t: "<%= {a: 1, b: 2} == {b: 2, a: 1} %>,<%= {a: 1} == {a: 2} %>"
+- n: string_vars
+  t: "<%= cfg['name'] %>,<%= cfg['list'][1] %>,<%= cfg['nested']['k'] %>,<%= cfg.keys.inspect %>"
+  v: {cfg: {name: "x", list: [1, 2], nested: {k: "v"}}}
+- n: clear_default_set
+  t: "<% h = {a: 1} %><% h.default = 5 %><%= h[:z] %><% h.clear %><%= h.inspect %>"
+- n: tally_uniq_zip
+  t: "<%= {a: 1, b: 1}.uniq { |k, v| v }.inspect %>,<%= {a: 1}.zip([2]).inspect %>"

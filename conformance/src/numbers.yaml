@@ -1,0 +1,42 @@
+- n: float_to_s
+  t: "<% [1.0, 1.5, 100.0, 1e14, 1e15, 1e16, 123456789012345.0, 1234567890123456.0, 1000000000000000.5, 0.1, 0.001, 0.0001, 0.00001, 0.000123, 1.5e300, 5e-324, -0.0, -2.5, 1.0/3, 2.0/3, 1e100, 1.7976931348623157e308, 9007199254740993.0] .each do |f| %><%= f %>|<% end %>"
+- n: float_inspect_in_array
+  t: "<%= [1e20, 1.0e-10, 0.5].inspect %>"
+- n: float_round
+  t: "<% [2.5, -2.5, 3.5, 0.5, 1.4999999999999999, 2.4999, -0.5, 10.0] .each do |f| %><%= f.round %>,<% end %>"
+- n: float_round_digits
+  t: "<% [[1.005, 2], [2.675, 2], [1.25, 1], [1.35, 1], [-1.25, 1], [3.14159, 3], [0.1 + 0.2, 1], [123.456, 0], [1.0e-20, 2], [12345.678, 5], [0.5, 14], [-0.0, 2], [1.15, 1], [2.5e-05, 5]].each do |f, d| %><%= f.round(d) %>,<% end %>"
+- n: float_round_negative
+  t: "<%= 1234.5.round(-2) %>,<%= 15.7.round(-1) %>,<%= -15.5.round(-1) %>,<%= 1234.round(-2) %>,<%= 1250.round(-2) %>,<%= -1250.round(-2) %>"
+- n: float_floor_ceil
+  t: "<%= 2.7.floor %>,<%= -2.7.floor %>,<%= 2.1.ceil %>,<%= -2.1.ceil %>,<%= 2.9.to_i %>,<%= -2.9.to_i %>,<%= 2.9.truncate %>"
+- n: float_preds
+  t: "<%= 0.0.zero? %>,<%= 1.5.positive? %>,<%= -1.5.negative? %>,<%= (1.0/0).infinite? %>,<%= (-1.0/0).infinite? %>,<%= 1.0.infinite?.inspect %>,<%= 1.0.finite? %>"
+- n: float_to_i_nan
+  t: "<%= (0.0/0).to_i %>"
+- n: int_methods
+  t: "<%= -5.abs %>,<%= 5.succ %>,<%= 5.pred %>,<%= 4.even? %>,<%= 4.odd? %>,<%= 0.zero? %>,<%= 5.positive? %>,<%= -5.negative? %>,<%= 5.to_f %>,<%= 255.to_s(16) %>,<%= 5.to_s(2) %>,<%= 65.chr %>,<%= 5.between?(1, 10) %>,<%= 15.clamp(1, 10) %>"
+- n: int_divmod
+  t: "<%= 7.divmod(2).inspect %>,<%= -7.divmod(2).inspect %>,<%= 7.5.divmod(2).inspect %>,<%= 7.fdiv(2) %>,<%= 12.gcd(18) %>,<%= 4.lcm(6) %>,<%= 123.digits.inspect %>,<%= 255.bit_length %>"
+- n: int_float_conversion
+  t: "<%= 3.7.to_i + 1 %>,<%= 3.to_f / 2 %>,<%= Integer('42') %>,<%= Integer('0x1A') %>,<%= Integer(' 1_000 ') %>,<%= Integer(3.99) %>,<%= Float('1.5') %>,<%= Float('3') %>"
+- n: integer_invalid
+  t: "<%= Integer('12abc') %>"
+- n: float_invalid
+  t: "<%= Float('abc') %>"
+- n: integer_nil
+  t: "<%= Integer(nil) %>"
+- n: numeric_equality
+  t: "<%= 1 == 1.0 %>,<%= 1.eql?(1.0) %>,<%= 2.0 == 2 %>,<%= 0.1 + 0.2 == 0.3 %>"
+- n: math_functions
+  t: "<%= Math.sqrt(2) %>,<%= Math.sin(0) %>,<%= Math.cos(0) %>,<%= Math.log(Math::E) %>,<%= Math.log(8, 2) %>,<%= Math.log10(1000) %>,<%= Math.log2(8) %>,<%= Math.hypot(3, 4) %>,<%= Math.atan2(1, 1) %>,<%= Math.exp(0) %>,<%= Math.cbrt(27) %>"
+- n: math_domain_error
+  t: "<%= Math.sqrt(-1) %>"
+- n: float_constants
+  t: "<%= Float::EPSILON %>,<%= Float::MAX %>,<%= Float::MIN %>,<%= Float::NAN.nan? %>"
+- n: number_class
+  t: "<%= 1.class %>,<%= 1.5.class %>,<%= 1.is_a?(Numeric) %>,<%= 1.5.is_a?(Integer) %>,<%= 1.is_a?(Comparable) %>"
+- n: large_int_ok
+  t: "<%= 9223372036854775807 %>,<%= -9223372036854775807 - 1 %>,<%= 2 ** 62 %>"
+- n: float_arith_formatting
+  t: "<%= 0.1 * 3 %>,<%= 100.0 / 3 %>,<%= 1.1 + 2.2 %>,<%= 3.0 * 1.1 %>,<%= 1e15 + 0.3 %>"

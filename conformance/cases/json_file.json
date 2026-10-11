@@ -1,0 +1,163 @@
+[
+  {
+    "name": "file_read",
+    "template": "<%= File.read('data/lines.txt') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "line one\nline two\n"
+  },
+  {
+    "name": "file_read_lines",
+    "template": "<% File.read('data/lines.txt').lines.each_with_index do |l, i| %><%= i %>:<%= l.chomp %>;<% end %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "0:line one;1:line two;"
+  },
+  {
+    "name": "file_exist",
+    "template": "<%= File.exist?('data/config.json') %>,<%= File.exist?('data/nope.json') %>,<%= File.file?('data') %>,<%= File.directory?('data') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "true,false,false,true"
+  },
+  {
+    "name": "file_missing",
+    "template": "<%= File.read('data/nope.txt') %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "IOError"
+  },
+  {
+    "name": "path_functions",
+    "template": "<%= File.basename('/a/b/c.txt') %>,<%= File.basename('/a/b/c.txt', '.txt') %>,<%= File.basename('c.rb', '.*') %>,<%= File.dirname('/a/b/c.txt') %>,<%= File.dirname('c.txt') %>,<%= File.extname('x/y.tar.gz') %>,<%= File.extname('noext') %>,<%= File.join('a', 'b', 'c.txt') %>,<%= File.join('a/', '/b') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "c.txt,c,c,/a/b,.,.gz,,a/b/c.txt,a/b"
+  },
+  {
+    "name": "json_parse_file",
+    "template": "<% cfg = JSON.parse(File.read('data/config.json')) -%>\n<%= cfg['name'] %> <%= cfg['targets'].join('/') %> <%= cfg['rate'] * 2 %> <%= cfg['count'] + 1 %> <%= cfg['enabled'] %> <%= cfg['extra'].inspect %> <%= cfg['nested']['a'][2]['b'] %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "SAT1 INST/INST2 3.0 4 true nil c"
+  },
+  {
+    "name": "json_parse_types",
+    "template": "<%= JSON.parse('{\"a\": [1, 2.5, -3, 1e2, 1E-2, true, false, null, \"sé\\n\"]}').inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "{\"a\" => [1, 2.5, -3, 100.0, 0.01, true, false, nil, \"sé\\n\"]}"
+  },
+  {
+    "name": "json_parse_symbolize",
+    "template": "<%= JSON.parse('{\"a\": {\"b\": 1}}', symbolize_names: true).inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "{a: {b: 1}}"
+  },
+  {
+    "name": "json_parse_scalar",
+    "template": "<%= JSON.parse('3').inspect %>,<%= JSON.parse('\"x\"').inspect %>,<%= JSON.parse('[]').inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "3,\"x\",[]"
+  },
+  {
+    "name": "json_parse_error",
+    "template": "<%= JSON.parse('{bad json}') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "JSON::ParserError"
+  },
+  {
+    "name": "json_parse_trailing_comma",
+    "template": "<%= JSON.parse('[1, 2,]') %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "JSON::ParserError"
+  },
+  {
+    "name": "json_parse_duplicate_keys",
+    "template": "<%= JSON.parse('{\"a\": 1, \"a\": 2}').inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "{\"a\" => 2}"
+  },
+  {
+    "name": "json_generate",
+    "template": "<%= JSON.generate({\"a\" => 1, b: [1, 2.5, nil, true], c: {d: \"x\\\"y\\n\\\\/é\\u0001\"}, 1 => :sym}) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "{\"a\":1,\"b\":[1,2.5,null,true],\"c\":{\"d\":\"x\\\"y\\n\\\\/é\\u0001\"},\"1\":\"sym\"}"
+  },
+  {
+    "name": "to_json",
+    "template": "<%= [1, 'two', nil, 3.0, 1e20].to_json %>,<%= 'str'.to_json %>,<%= nil.to_json %>,<%= 42.to_json %>,<%= {a: {}}.to_json %>,<%= :s.to_json %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "expected": "[1,\"two\",null,3.0,1.0e+20],\"str\",null,42,{\"a\":{}},\"s\""
+  },
+  {
+    "name": "json_float_formats",
+    "template": "<%= JSON.generate([0.1, 1.0e-5, 1e15, 1e16, 123456789.125, -0.0, 1.0/3, 5e-324]) %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "expected": "[0.1,1.0e-05,1.0e+15,1.0e+16,123456789.125,-0.0,0.3333333333333333,5.0e-324]"
+  },
+  {
+    "name": "json_parse_comments",
+    "template": "<%= JSON.parse(\"{ // c\\n \\\"a\\\": /* x */ 1}\").inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "{\"a\" => 1}"
+  },
+  {
+    "name": "json_pretty",
+    "template": "<%= JSON.pretty_generate({\"a\" => 1, \"b\" => [1, [2, 3], {}], \"c\" => {\"d\" => []}, \"e\" => {\"f\" => nil}}) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "{\n  \"a\": 1,\n  \"b\": [\n    1,\n    [\n      2,\n      3\n    ],\n    {}\n  ],\n  \"c\": {\n    \"d\": []\n  },\n  \"e\": {\n    \"f\": null\n  }\n}"
+  },
+  {
+    "name": "json_pretty_scalar_array",
+    "template": "<%= JSON.pretty_generate([]) %>|<%= JSON.pretty_generate([1]) %>|<%= JSON.pretty_generate('s') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[]|[\n  1\n]|\"s\""
+  },
+  {
+    "name": "json_nan_error",
+    "template": "<%= JSON.generate([Float::NAN]) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "JSON::GeneratorError"
+  },
+  {
+    "name": "json_roundtrip",
+    "template": "<% data = {'list' => [1, 2], 'name' => 'n'} %><%= JSON.parse(JSON.generate(data)) == data %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "true"
+  },
+  {
+    "name": "json_unicode_escape",
+    "template": "<%= JSON.parse('\"\\\\u00e9\\\\ud83d\\\\ude00\"') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "é😀"
+  },
+  {
+    "name": "dir_glob",
+    "template": "<%= Dir.glob('partials/*.erb').inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[\"partials/_greet.erb\", \"partials/_item.erb\", \"partials/_nested.erb\", \"partials/_noscope.erb\", \"partials/_recurse.erb\"]"
+  },
+  {
+    "name": "dir_glob_recursive",
+    "template": "<%= Dir.glob('**/*.json').inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[\"data/config.json\"]"
+  }
+]

@@ -1,0 +1,105 @@
+- n: plain_text
+  t: "hello world"
+- n: empty
+  t: ""
+- n: output_tag
+  t: "a<%= 1 + 2 %>b"
+- n: code_tag_no_output
+  t: "a<% x = 5 %>b<%= x %>"
+- n: comment_tag
+  t: "a<%# this is ignored %>b"
+- n: comment_multiline
+  t: "a<%# line1\nline2 %>b"
+- n: escaped_open
+  t: "<%% literal %%> <%= 1 %>"
+- n: newline_kept
+  t: "<% x = 1 %>\nA\n"
+- n: trim_close
+  t: "<% x = 1 -%>\nA\n"
+- n: trim_open
+  t: "  <%- x = 1 -%>\nA\n"
+- n: trim_open_not_at_line_start
+  t: "B  <%- x = 1 -%>\nA\n"
+- n: trim_output_close
+  t: "<%= 1 -%>\n<%= 2 -%>\n"
+- n: trim_comment
+  t: "a\n<%# c -%>\nb"
+- n: trim_tab_indent
+  t: "\t\t<%- if true -%>\nyes\n\t\t<%- end -%>\n"
+- n: trim_crlf
+  t: "<% x = 1 -%>\r\nA"
+- n: loop_across_tags
+  t: |
+    <% [1, 2, 3].each do |i| -%>
+      item <%= i %>
+    <% end -%>
+    done
+- n: loop_across_tags_brace
+  t: "<% [1, 2].each { |i| %>[<%= i %>]<% } %>"
+- n: if_across_tags
+  t: "<% if true %>T<% else %>F<% end %>"
+- n: nested_across_tags
+  t: |
+    <%- {a: [1, 2], b: [3]}.each do |k, vs| -%>
+    <%= k %>:
+    <%- vs.each do |v| -%>
+      - <%= v %>
+    <%- end -%>
+    <%- end -%>
+- n: multi_statement_tag
+  t: "<% a = 1; b = 2 %><%= a + b %>"
+- n: multiline_code_tag
+  t: |-
+    <%
+      a = 1
+      b = a + 1
+    %><%= b %>
+- n: code_comment_in_tag
+  t: "<% a = 1 # set a\n b = 2 %><%= a + b %>"
+- n: code_comment_ends_at_tag
+  t: "<% a = 1 # comment %>x<%= a %>"
+  x: "x1"
+  oracle: false
+- n: output_nil
+  t: "[<%= nil %>]"
+- n: output_true
+  t: "<%= true %>,<%= false %>"
+- n: output_string_with_tag_chars
+  t: "<%= '<b>' %>"
+- n: percent_in_text
+  t: "100% <%= 5 %>%"
+- n: unclosed_tag
+  t: "a <%= 1 "
+  e: SyntaxError
+  oracle: false
+- n: unclosed_block
+  t: "<% if true %>x"
+  e: SyntaxError
+- n: extra_end
+  t: "<% end %>"
+  e: SyntaxError
+- n: semicolon_terminators
+  t: "<% if true; x = 1; end %><%= x %>"
+- n: then_keyword
+  t: "<% if 1 > 0 then %>yes<% end %>"
+- n: line_continuation_operator
+  t: "<%= 1 +\n 2 %>"
+- n: leading_dot_chain
+  t: "<%= [3, 1, 2]\n  .sort\n  .reverse\n  .join(',') %>"
+- n: multiline_array_literal
+  t: "<%= [\n 1,\n 2,\n] %>"
+- n: multiline_hash_literal
+  t: "<%= {\n a: 1,\n b: 2\n}[:b] %>"
+- n: multiline_args
+  t: "<%= [1, 2, 3].first(\n 2\n) %>"
+- n: unicode_text
+  t: "héllo ✓ <%= 'wörld' %>"
+- n: block_text_inside_case
+  t: |
+    <%- x = 2 -%>
+    <%- case x -%>
+    <%- when 1 -%>
+    one
+    <%- when 2 -%>
+    two
+    <%- end -%>

@@ -1,0 +1,275 @@
+[
+  {
+    "name": "plain_text",
+    "template": "hello world",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "hello world"
+  },
+  {
+    "name": "empty",
+    "template": "",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": ""
+  },
+  {
+    "name": "output_tag",
+    "template": "a<%= 1 + 2 %>b",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "a3b"
+  },
+  {
+    "name": "code_tag_no_output",
+    "template": "a<% x = 5 %>b<%= x %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "ab5"
+  },
+  {
+    "name": "comment_tag",
+    "template": "a<%# this is ignored %>b",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "ab"
+  },
+  {
+    "name": "comment_multiline",
+    "template": "a<%# line1\nline2 %>b",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "ab"
+  },
+  {
+    "name": "escaped_open",
+    "template": "<%% literal %%> <%= 1 %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "<% literal %%> 1"
+  },
+  {
+    "name": "newline_kept",
+    "template": "<% x = 1 %>\nA\n",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "\nA\n"
+  },
+  {
+    "name": "trim_close",
+    "template": "<% x = 1 -%>\nA\n",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "A\n"
+  },
+  {
+    "name": "trim_open",
+    "template": "  <%- x = 1 -%>\nA\n",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "A\n"
+  },
+  {
+    "name": "trim_open_not_at_line_start",
+    "template": "B  <%- x = 1 -%>\nA\n",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "B  A\n"
+  },
+  {
+    "name": "trim_output_close",
+    "template": "<%= 1 -%>\n<%= 2 -%>\n",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "12"
+  },
+  {
+    "name": "trim_comment",
+    "template": "a\n<%# c -%>\nb",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "a\nb"
+  },
+  {
+    "name": "trim_tab_indent",
+    "template": "\t\t<%- if true -%>\nyes\n\t\t<%- end -%>\n",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "yes\n"
+  },
+  {
+    "name": "trim_crlf",
+    "template": "<% x = 1 -%>\r\nA",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "A"
+  },
+  {
+    "name": "loop_across_tags",
+    "template": "<% [1, 2, 3].each do |i| -%>\n  item <%= i %>\n<% end -%>\ndone\n",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "  item 1\n  item 2\n  item 3\ndone\n"
+  },
+  {
+    "name": "loop_across_tags_brace",
+    "template": "<% [1, 2].each { |i| %>[<%= i %>]<% } %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[1][2]"
+  },
+  {
+    "name": "if_across_tags",
+    "template": "<% if true %>T<% else %>F<% end %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "T"
+  },
+  {
+    "name": "nested_across_tags",
+    "template": "<%- {a: [1, 2], b: [3]}.each do |k, vs| -%>\n<%= k %>:\n<%- vs.each do |v| -%>\n  - <%= v %>\n<%- end -%>\n<%- end -%>\n",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "a:\n  - 1\n  - 2\nb:\n  - 3\n"
+  },
+  {
+    "name": "multi_statement_tag",
+    "template": "<% a = 1; b = 2 %><%= a + b %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "3"
+  },
+  {
+    "name": "multiline_code_tag",
+    "template": "<%\n  a = 1\n  b = a + 1\n%><%= b %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "2"
+  },
+  {
+    "name": "code_comment_in_tag",
+    "template": "<% a = 1 # set a\n b = 2 %><%= a + b %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "3"
+  },
+  {
+    "name": "code_comment_ends_at_tag",
+    "template": "<% a = 1 # comment %>x<%= a %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "expected": "x1"
+  },
+  {
+    "name": "output_nil",
+    "template": "[<%= nil %>]",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[]"
+  },
+  {
+    "name": "output_true",
+    "template": "<%= true %>,<%= false %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "true,false"
+  },
+  {
+    "name": "output_string_with_tag_chars",
+    "template": "<%= '<b>' %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "<b>"
+  },
+  {
+    "name": "percent_in_text",
+    "template": "100% <%= 5 %>%",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "100% 5%"
+  },
+  {
+    "name": "unclosed_tag",
+    "template": "a <%= 1 ",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "unclosed_block",
+    "template": "<% if true %>x",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "extra_end",
+    "template": "<% end %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "semicolon_terminators",
+    "template": "<% if true; x = 1; end %><%= x %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "1"
+  },
+  {
+    "name": "then_keyword",
+    "template": "<% if 1 > 0 then %>yes<% end %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "yes"
+  },
+  {
+    "name": "line_continuation_operator",
+    "template": "<%= 1 +\n 2 %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "3"
+  },
+  {
+    "name": "leading_dot_chain",
+    "template": "<%= [3, 1, 2]\n  .sort\n  .reverse\n  .join(',') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "3,2,1"
+  },
+  {
+    "name": "multiline_array_literal",
+    "template": "<%= [\n 1,\n 2,\n] %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[1, 2]"
+  },
+  {
+    "name": "multiline_hash_literal",
+    "template": "<%= {\n a: 1,\n b: 2\n}[:b] %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "2"
+  },
+  {
+    "name": "multiline_args",
+    "template": "<%= [1, 2, 3].first(\n 2\n) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[1, 2]"
+  },
+  {
+    "name": "unicode_text",
+    "template": "héllo ✓ <%= 'wörld' %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "héllo ✓ wörld"
+  },
+  {
+    "name": "block_text_inside_case",
+    "template": "<%- x = 2 -%>\n<%- case x -%>\n<%- when 1 -%>\none\n<%- when 2 -%>\ntwo\n<%- end -%>\n",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "two\n"
+  }
+]

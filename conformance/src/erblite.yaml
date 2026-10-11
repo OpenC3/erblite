@@ -1,0 +1,117 @@
+- n: render_partial
+  t: "<%= render('partials/_greet.erb', name: 'Bob') %>"
+  x: "Hello Bob!"
+  oracle: false
+- n: render_partial_no_parens
+  t: "<%= render 'partials/_greet.erb', name: 'Amy' %>"
+  x: "Hello Amy!"
+  oracle: false
+- n: render_partial_string_keys
+  t: "<%= render('partials/_greet.erb', {'name' => 'Cy'}) %>"
+  x: "Hello Cy!"
+  oracle: false
+- n: render_partial_loop
+  t: "<%= render('partials/_item.erb', items: [1, 2]) %>"
+  x: "* 1\n* 2\n"
+  oracle: false
+- n: render_nested
+  t: "<%= render('partials/_nested.erb', who: 'Z') %>"
+  x: "AHello Z!B"
+  oracle: false
+- n: render_scope_isolated
+  t: "<% outer = 1 %><%= render('partials/_noscope.erb') %>"
+  e: NameError
+  oracle: false
+- n: render_recursion_limit
+  t: "<%= render('partials/_recurse.erb', n: 1) %>"
+  e: LimitError
+  oracle: false
+- n: render_missing
+  t: "<%= render('partials/_none.erb') %>"
+  e: IOError
+  oracle: false
+- n: sandbox_parent_escape
+  t: "<%= File.read('../outside.txt') %>"
+  e: SecurityError
+  oracle: false
+- n: sandbox_parent_escape_nested
+  t: "<%= File.read('data/../../outside.txt') %>"
+  e: SecurityError
+  oracle: false
+- n: sandbox_inner_dotdot_ok
+  t: "<%= File.read('data/../data/lines.txt').lines.size %>"
+  x: "2"
+  oracle: false
+- n: sandbox_absolute
+  t: "<%= File.read('/etc/passwd') %>"
+  e: SecurityError
+  oracle: false
+- n: sandbox_exist_outside_false
+  t: "<%= File.exist?('/etc/passwd') %>,<%= File.exist?('../outside.txt') %>"
+  x: "false,false"
+  oracle: false
+- n: sandbox_render_escape
+  t: "<%= render('../outside.txt') %>"
+  e: SecurityError
+  oracle: false
+- n: sandbox_glob_escape
+  t: "<%= Dir.glob('../*').inspect %>"
+  e: SecurityError
+  oracle: false
+- n: integer_overflow_add
+  t: "<%= 9223372036854775807 + 1 %>"
+  e: RangeError
+  oracle: false
+- n: integer_overflow_mul
+  t: "<%= 2 ** 64 %>"
+  e: RangeError
+  oracle: false
+- n: integer_overflow_shift
+  t: "<%= 1 << 70 %>"
+  e: RangeError
+  oracle: false
+- n: integer_overflow_literal
+  t: "<%= 99999999999999999999 %>"
+  e: RangeError
+  oracle: false
+- n: integer_overflow_neg
+  t: "<%= -(-9223372036854775807 - 1) %>"
+  e: RangeError
+  oracle: false
+- n: integer_overflow_float_to_i
+  t: "<%= 1e30.to_i %>"
+  e: RangeError
+  oracle: false
+- n: integer_overflow_json
+  t: "<%= JSON.parse('[123456789012345678901234567890]') %>"
+  e: RangeError
+  oracle: false
+- n: negative_exponent
+  t: "<%= 2 ** -1 %>"
+  e: RangeError
+  oracle: false
+- n: max_steps_infinite_loop
+  t: "<% loop do %><% end %>"
+  max_steps: 10000
+  e: LimitError
+  oracle: false
+- n: max_steps_while
+  t: "<% while true do end %>"
+  max_steps: 10000
+  e: LimitError
+  oracle: false
+- n: max_steps_ok
+  t: "<% 10.times { } %>ok"
+  max_steps: 10000
+  x: "ok"
+  oracle: false
+- n: string_count_substring
+  t: "<%= 'abcabc'.count('bc') %>"
+  x: "2"
+  oracle: false
+- n: vars_types
+  t: "<%= s %>|<%= i + 1 %>|<%= f * 2 %>|<%= b %>|<%= n.inspect %>|<%= a.inspect %>|<%= h.inspect %>"
+  v: {s: "str", i: 41, f: 1.25, b: true, n: null, a: [1, "x", [2]], h: {k: {z: 1}}}
+- n: var_shadow_in_block_assigns_host
+  t: "<% [1, 2].each { |i| total = total + i } %><%= total %>"
+  v: {total: 10}

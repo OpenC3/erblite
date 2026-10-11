@@ -1,0 +1,1 @@
+{"system": "DEMO", "targets": [{"name": "inst", "port": 8080, "rate": 1.5, "items": ["TEMP1", "TEMP2", "VOLT"]}, {"name": "inst2", "port": 8081, "rate": 0.25, "items": []}]}

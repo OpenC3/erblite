@@ -1,0 +1,20 @@
+- n: basics
+  t: "<% r = (1..5) %><%= r.first %>,<%= r.last %>,<%= r.first(2).inspect %>,<%= r.last(2).inspect %>,<%= r.min %>,<%= r.max %>,<%= r.size %>,<%= r.count %>,<%= r.sum %>,<%= r.begin %>,<%= r.end %>,<%= r.exclude_end? %>"
+- n: exclusive
+  t: "<% r = (1...5) %><%= r.to_a.inspect %>,<%= r.last %>,<%= r.max %>,<%= r.size %>,<%= r.sum %>,<%= r.include?(5) %>,<%= r.to_s %>"
+- n: include_cover
+  t: "<%= (1..10).include?(5) %>,<%= (1..10).member?(11) %>,<%= (1.5..2.5).include?(2) %>,<%= (1..10).cover?(3) %>,<%= (1..10) === 5 %>"
+- n: iteration
+  t: "<% (1..3).each { |i| %><%= i %><% } %>|<% (1..3).reverse_each { |i| %><%= i %><% } %>|<% (0..10).step(5) { |i| %><%= i %>,<% } %>|<%= (1..4).map { |x| x * x }.inspect %>|<%= (1..6).select(&:even?).inspect %>|<%= (1..4).each_slice(2).map(&:sum).inspect %>"
+- n: empty_range
+  t: "<%= (5..1).to_a.inspect %>,<%= (5..1).sum %>,<%= (5..1).size %>,<%= (1...1).to_a.inspect %>,<%= (5..1).min.inspect %>"
+- n: range_vars
+  t: "<% a = 2; b = 4 %><%= (a..b).to_a.inspect %>,<%= (a..b * 2).to_a.size %>"
+- n: float_range_iterate_error
+  t: "<% (1.5..3).each { |x| } %>"
+- n: inject_range
+  t: "<%= (1..5).inject(:*) %>,<%= (1..5).reduce(0) { |s, x| s + x } %>,<%= (1..3).each_with_index.map { |x, i| x * i }.inspect %>,<%= (1..3).to_a.reverse.inspect %>"
+- n: range_with_negatives
+  t: "<%= (-3..-1).to_a.inspect %>,<%= (-2..2).sum %>"
+- n: range_inspect_strings
+  t: "<%= (1..3).inspect %>,<%= (1.0...2.5).inspect %>,<%= [(1..2)].inspect %>"

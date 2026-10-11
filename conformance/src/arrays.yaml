@@ -1,0 +1,66 @@
+- n: access
+  t: "<% a = [1, 2, 3, 4, 5] %><%= a[0] %>,<%= a[-1] %>,<%= a[1, 2].inspect %>,<%= a[1..2].inspect %>,<%= a[1...-1].inspect %>,<%= a[9].inspect %>,<%= a[5, 1].inspect %>,<%= a[6, 1].inspect %>,<%= a.first %>,<%= a.first(2).inspect %>,<%= a.last(2).inspect %>,<%= a.dig(0) %>"
+- n: mutation
+  t: "<% a = [1] %><% a << 2; a.push(3, 4); a.unshift(0); x = a.pop; y = a.shift; a.insert(1, 9) %><%= a.inspect %>,<%= x %>,<%= y %>"
+- n: index_assign_extend
+  t: "<% a = [1] %><% a[3] = 4 %><%= a.inspect %>"
+- n: index_assign_negative
+  t: "<% a = [1, 2, 3] %><% a[-1] = 9 %><%= a.inspect %>"
+- n: index_assign_range
+  t: "<% a = [1, 2, 3, 4] %><% a[1, 2] = 9 %><%= a.inspect %>"
+- n: delete_methods
+  t: "<% a = [1, 2, 3, 2, 4] %><% a.delete(2); a.delete_at(0); a.delete_if { |x| x > 3 } %><%= a.inspect %>"
+- n: reference_semantics
+  t: "<% a = [1]; b = a; b << 2 %><%= a.inspect %>"
+- n: dup_independent
+  t: "<% a = [1]; b = a.dup; b << 2 %><%= a.inspect %>,<%= b.inspect %>"
+- n: set_ops
+  t: "<%= ([1, 2, 3] + [4]).inspect %>,<%= ([1, 2, 2, 3] - [2]).inspect %>,<%= ([1, 2] * 2).inspect %>,<%= [1, 2] * ', ' %>,<%= ([1, 2, 3] & [2, 3, 4]).inspect %>,<%= ([1, 2] | [2, 3]).inspect %>"
+- n: query
+  t: "<% a = [3, 1, 2] %><%= a.length %>,<%= a.size %>,<%= a.empty? %>,<%= [].empty? %>,<%= a.include?(2) %>,<%= a.index(2) %>,<%= a.find_index { |x| x < 3 } %>,<%= a.rindex(2) %>"
+- n: transform
+  t: "<% a = [3, 1, nil, 2, [4, [5]]] %><%= a.compact.inspect %>,<%= a.flatten.inspect %>,<%= a.flatten(1).inspect %>,<%= [1, 2, 3].reverse.inspect %>,<%= [1, 2, 3].rotate.inspect %>,<%= [1, 2, 3].rotate(-1).inspect %>,<%= [1, 1, 2].uniq.inspect %>,<%= [1, 2, 3, 4].uniq { |x| x % 2 }.inspect %>"
+- n: sort
+  t: "<%= [3, 1, 2].sort.inspect %>,<%= %w[b c a].sort.inspect %>,<%= [3, 1, 2].sort { |a, b| b <=> a }.inspect %>,<%= %w[ccc a bb].sort_by(&:length).inspect %>,<%= [[2, 'a'], [1, 'b']].sort.inspect %>,<%= [1.5, 1, 2].sort.inspect %>"
+- n: sort_mixed_error
+  t: "<%= [1, 'a'].sort %>"
+- n: min_max_sum
+  t: "<% a = [3, 1, 2] %><%= a.min %>,<%= a.max %>,<%= a.sum %>,<%= a.max(2).inspect %>,<%= a.min_by { |x| -x } %>,<%= a.max_by { |x| -x } %>,<%= a.minmax.inspect %>,<%= [].max.inspect %>,<%= [].sum %>"
+- n: float_sum_kahan
+  t: "<%= [0.1, 0.2, 0.3].sum %>,<%= [0.1] * 10 %>,<%= ([0.1] * 10).sum %>,<%= [1, 0.1, 0.2].sum %>,<%= [1e100, 1.0, -1e100].sum %>,<%= ['a', 'b'].sum('') %>,<%= [[1], [2]].sum([]).inspect %>,<%= [0.1, 0.2].sum(1) %>"
+- n: inject_reduce
+  t: "<%= [1, 2, 3].inject { |s, x| s + x } %>,<%= [1, 2, 3].reduce(10) { |s, x| s + x } %>,<%= [1, 2, 3].inject(:*) %>,<%= [1, 2, 3].reduce(2, :*) %>,<%= [].inject(:+).inspect %>"
+- n: join
+  t: "<%= [1, 2, 3].join %>,<%= [1, 2, 3].join('-') %>,<%= [1, [2, [3]], nil, 'x'].join(',') %>,<%= [].join(',').inspect %>"
+- n: enumerable_preds
+  t: "<% a = [1, 2, 3] %><%= a.any? { |x| x > 2 } %>,<%= a.all? { |x| x > 0 } %>,<%= a.none? { |x| x > 3 } %>,<%= a.one? { |x| x == 1 } %>,<%= [nil, false].any? %>,<%= [].all? %>,<%= a.any?(2) %>,<%= a.all?(Integer) %>,<%= a.count %>,<%= a.count(2) %>,<%= a.count(&:odd?) %>"
+- n: map_select_reject
+  t: "<% a = (1..6).to_a %><%= a.map { |x| x * x }.inspect %>,<%= a.select(&:even?).inspect %>,<%= a.filter { |x| x > 4 }.inspect %>,<%= a.reject(&:even?).inspect %>,<%= a.find { |x| x > 3 } %>,<%= a.detect { |x| x > 10 }.inspect %>,<%= a.filter_map { |x| x * 2 if x.odd? }.inspect %>,<%= a.flat_map { |x| [x, x] }.first(4).inspect %>,<%= a.collect(&:to_s).inspect %>"
+- n: grouping
+  t: "<% a = (1..6).to_a %><%= a.group_by(&:odd?).inspect %>,<%= a.partition(&:even?).inspect %>,<%= a.each_slice(4).to_a.inspect %>,<%= a.each_cons(5).to_a.inspect %>,<%= %w[a b a].tally.inspect %>,<%= a.chunk_while { |x, y| y == x + 1 }.to_a.inspect %>,<%= [1, 2, 4, 5, 7].slice_when { |x, y| y != x + 1 }.to_a.inspect %>"
+- n: take_drop
+  t: "<% a = [1, 2, 3, 4] %><%= a.take(2).inspect %>,<%= a.drop(2).inspect %>,<%= a.take_while { |x| x < 3 }.inspect %>,<%= a.drop_while { |x| x < 3 }.inspect %>"
+- n: zip_transpose
+  t: "<%= [1, 2].zip([3, 4], [5]).inspect %>,<%= [[1, 2], [3, 4]].transpose.inspect %>,<%= [1, 2, 3].values_at(0, 2, 5).inspect %>"
+- n: each_with
+  t: "<% %w[a b].each_with_index do |x, i| %><%= i %>:<%= x %>,<% end %><%= [1, 2].each_with_object([]) { |x, acc| acc << x * 2 }.inspect %>"
+- n: enumerator_with_index
+  t: "<%= %w[a b].map.with_index { |x, i| \"#{i}#{x}\" }.inspect %>,<%= %w[a b].each.with_index(1).map { |x, i| \"#{i}#{x}\" }.inspect %>,<%= %w[a b c].select.with_index { |x, i| i != 1 }.inspect %>,<%= %w[a b].each_with_index.to_a.inspect %>,<%= 3.times.map { |i| i * 2 }.inspect %>"
+- n: enumerator_inspect
+  t: "<%= [1, 2].each.inspect %>,<%= [1, 2, 3].each_slice(2).inspect %>,<%= [1, 2].map.size %>"
+- n: to_h
+  t: "<%= [[:a, 1], [:b, 2]].to_h.inspect %>,<%= [1, 2].to_h { |x| [x, x * 2] }.inspect %>"
+- n: product_combination
+  t: "<%= [1, 2].product([3, 4]).inspect %>,<%= [1, 2, 3].combination(2).to_a.inspect %>,<%= [1, 2, 3].permutation(2).to_a.length %>"
+- n: array_new
+  t: "<%= Array.new(3).inspect %>,<%= Array.new(2, 0).inspect %>,<%= Array.new(3) { |i| i * i }.inspect %>,<%= Array(nil).inspect %>,<%= Array([1]).inspect %>,<%= Array(1).inspect %>,<%= Array({a: 1}).inspect %>"
+- n: compare_eq
+  t: "<%= [1, [2]] == [1, [2]] %>,<%= [1, 2] <=> [1] %>,<%= ([1, 'a'] <=> [1, 2]).inspect %>"
+- n: fill_clear_concat
+  t: "<% a = [1, 2] %><% a.concat([3], [4]) %><%= a.inspect %><% a.fill(0) %><%= a.inspect %><% a.clear %><%= a.inspect %>"
+- n: assoc_each_index_reverse_each
+  t: "<%= [[1, :a], [2, :b]].assoc(2).inspect %>,<% [1, 2].each_index { |i| %><%= i %><% } %>,<% [1, 2, 3].reverse_each { |x| %><%= x %><% } %>"
+- n: first_on_empty
+  t: "<%= [].first.inspect %>,<%= [].last(2).inspect %>"
+- n: inspect_nested
+  t: "<%= [1, [2, [3, {a: [4]}]], 'x', :y, nil].to_s %>"

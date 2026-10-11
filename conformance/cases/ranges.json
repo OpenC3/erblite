@@ -1,0 +1,72 @@
+[
+  {
+    "name": "basics",
+    "template": "<% r = (1..5) %><%= r.first %>,<%= r.last %>,<%= r.first(2).inspect %>,<%= r.last(2).inspect %>,<%= r.min %>,<%= r.max %>,<%= r.size %>,<%= r.count %>,<%= r.sum %>,<%= r.begin %>,<%= r.end %>,<%= r.exclude_end? %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "1,5,[1, 2],[4, 5],1,5,5,5,15,1,5,false"
+  },
+  {
+    "name": "exclusive",
+    "template": "<% r = (1...5) %><%= r.to_a.inspect %>,<%= r.last %>,<%= r.max %>,<%= r.size %>,<%= r.sum %>,<%= r.include?(5) %>,<%= r.to_s %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[1, 2, 3, 4],5,4,4,10,false,1...5"
+  },
+  {
+    "name": "include_cover",
+    "template": "<%= (1..10).include?(5) %>,<%= (1..10).member?(11) %>,<%= (1.5..2.5).include?(2) %>,<%= (1..10).cover?(3) %>,<%= (1..10) === 5 %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "true,false,true,true,true"
+  },
+  {
+    "name": "iteration",
+    "template": "<% (1..3).each { |i| %><%= i %><% } %>|<% (1..3).reverse_each { |i| %><%= i %><% } %>|<% (0..10).step(5) { |i| %><%= i %>,<% } %>|<%= (1..4).map { |x| x * x }.inspect %>|<%= (1..6).select(&:even?).inspect %>|<%= (1..4).each_slice(2).map(&:sum).inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "123|321|0,5,10,|[1, 4, 9, 16]|[2, 4, 6]|[3, 7]"
+  },
+  {
+    "name": "empty_range",
+    "template": "<%= (5..1).to_a.inspect %>,<%= (5..1).sum %>,<%= (5..1).size %>,<%= (1...1).to_a.inspect %>,<%= (5..1).min.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[],0,0,[],nil"
+  },
+  {
+    "name": "range_vars",
+    "template": "<% a = 2; b = 4 %><%= (a..b).to_a.inspect %>,<%= (a..b * 2).to_a.size %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[2, 3, 4],7"
+  },
+  {
+    "name": "float_range_iterate_error",
+    "template": "<% (1.5..3).each { |x| } %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "TypeError"
+  },
+  {
+    "name": "inject_range",
+    "template": "<%= (1..5).inject(:*) %>,<%= (1..5).reduce(0) { |s, x| s + x } %>,<%= (1..3).each_with_index.map { |x, i| x * i }.inspect %>,<%= (1..3).to_a.reverse.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "120,15,[0, 2, 6],[3, 2, 1]"
+  },
+  {
+    "name": "range_with_negatives",
+    "template": "<%= (-3..-1).to_a.inspect %>,<%= (-2..2).sum %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[-3, -2, -1],0"
+  },
+  {
+    "name": "range_inspect_strings",
+    "template": "<%= (1..3).inspect %>,<%= (1.0...2.5).inspect %>,<%= [(1..2)].inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "1..3,1.0...2.5,[1..2]"
+  }
+]

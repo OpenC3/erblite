@@ -1,0 +1,1 @@
+{"name": "SAT1", "targets": ["INST", "INST2"], "rate": 1.5, "count": 3, "enabled": true, "extra": null, "nested": {"a": [1, 2, {"b": "c"}]}}

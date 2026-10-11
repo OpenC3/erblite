@@ -1,0 +1,149 @@
+[
+  {
+    "name": "float_to_s",
+    "template": "<% [1.0, 1.5, 100.0, 1e14, 1e15, 1e16, 123456789012345.0, 1234567890123456.0, 1000000000000000.5, 0.1, 0.001, 0.0001, 0.00001, 0.000123, 1.5e300, 5e-324, -0.0, -2.5, 1.0/3, 2.0/3, 1e100, 1.7976931348623157e308, 9007199254740993.0] .each do |f| %><%= f %>|<% end %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "1.0|1.5|100.0|100000000000000.0|1.0e+15|1.0e+16|123456789012345.0|1.234567890123456e+15|1000000000000000.5|0.1|0.001|0.0001|1.0e-05|0.000123|1.5e+300|5.0e-324|-0.0|-2.5|0.3333333333333333|0.6666666666666666|1.0e+100|1.7976931348623157e+308|9.007199254740992e+15|"
+  },
+  {
+    "name": "float_inspect_in_array",
+    "template": "<%= [1e20, 1.0e-10, 0.5].inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[1.0e+20, 1.0e-10, 0.5]"
+  },
+  {
+    "name": "float_round",
+    "template": "<% [2.5, -2.5, 3.5, 0.5, 1.4999999999999999, 2.4999, -0.5, 10.0] .each do |f| %><%= f.round %>,<% end %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "3,-3,4,1,2,2,-1,10,"
+  },
+  {
+    "name": "float_round_digits",
+    "template": "<% [[1.005, 2], [2.675, 2], [1.25, 1], [1.35, 1], [-1.25, 1], [3.14159, 3], [0.1 + 0.2, 1], [123.456, 0], [1.0e-20, 2], [12345.678, 5], [0.5, 14], [-0.0, 2], [1.15, 1], [2.5e-05, 5]].each do |f, d| %><%= f.round(d) %>,<% end %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "1.01,2.68,1.3,1.4,-1.3,3.142,0.3,123,0.0,12345.678,0.5,-0.0,1.2,3.0e-05,"
+  },
+  {
+    "name": "float_round_negative",
+    "template": "<%= 1234.5.round(-2) %>,<%= 15.7.round(-1) %>,<%= -15.5.round(-1) %>,<%= 1234.round(-2) %>,<%= 1250.round(-2) %>,<%= -1250.round(-2) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "1200,20,-20,1200,1300,-1300"
+  },
+  {
+    "name": "float_floor_ceil",
+    "template": "<%= 2.7.floor %>,<%= -2.7.floor %>,<%= 2.1.ceil %>,<%= -2.1.ceil %>,<%= 2.9.to_i %>,<%= -2.9.to_i %>,<%= 2.9.truncate %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "2,-3,3,-2,2,-2,2"
+  },
+  {
+    "name": "float_preds",
+    "template": "<%= 0.0.zero? %>,<%= 1.5.positive? %>,<%= -1.5.negative? %>,<%= (1.0/0).infinite? %>,<%= (-1.0/0).infinite? %>,<%= 1.0.infinite?.inspect %>,<%= 1.0.finite? %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "true,true,true,1,-1,nil,true"
+  },
+  {
+    "name": "float_to_i_nan",
+    "template": "<%= (0.0/0).to_i %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "FloatDomainError"
+  },
+  {
+    "name": "int_methods",
+    "template": "<%= -5.abs %>,<%= 5.succ %>,<%= 5.pred %>,<%= 4.even? %>,<%= 4.odd? %>,<%= 0.zero? %>,<%= 5.positive? %>,<%= -5.negative? %>,<%= 5.to_f %>,<%= 255.to_s(16) %>,<%= 5.to_s(2) %>,<%= 65.chr %>,<%= 5.between?(1, 10) %>,<%= 15.clamp(1, 10) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "5,6,4,true,false,true,true,true,5.0,ff,101,A,true,10"
+  },
+  {
+    "name": "int_divmod",
+    "template": "<%= 7.divmod(2).inspect %>,<%= -7.divmod(2).inspect %>,<%= 7.5.divmod(2).inspect %>,<%= 7.fdiv(2) %>,<%= 12.gcd(18) %>,<%= 4.lcm(6) %>,<%= 123.digits.inspect %>,<%= 255.bit_length %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[3, 1],[-4, 1],[3, 1.5],3.5,6,12,[3, 2, 1],8"
+  },
+  {
+    "name": "int_float_conversion",
+    "template": "<%= 3.7.to_i + 1 %>,<%= 3.to_f / 2 %>,<%= Integer('42') %>,<%= Integer('0x1A') %>,<%= Integer(' 1_000 ') %>,<%= Integer(3.99) %>,<%= Float('1.5') %>,<%= Float('3') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "4,1.5,42,26,1000,3,1.5,3.0"
+  },
+  {
+    "name": "integer_invalid",
+    "template": "<%= Integer('12abc') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "ArgumentError"
+  },
+  {
+    "name": "float_invalid",
+    "template": "<%= Float('abc') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "ArgumentError"
+  },
+  {
+    "name": "integer_nil",
+    "template": "<%= Integer(nil) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "TypeError"
+  },
+  {
+    "name": "numeric_equality",
+    "template": "<%= 1 == 1.0 %>,<%= 1.eql?(1.0) %>,<%= 2.0 == 2 %>,<%= 0.1 + 0.2 == 0.3 %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "true,false,true,false"
+  },
+  {
+    "name": "math_functions",
+    "template": "<%= Math.sqrt(2) %>,<%= Math.sin(0) %>,<%= Math.cos(0) %>,<%= Math.log(Math::E) %>,<%= Math.log(8, 2) %>,<%= Math.log10(1000) %>,<%= Math.log2(8) %>,<%= Math.hypot(3, 4) %>,<%= Math.atan2(1, 1) %>,<%= Math.exp(0) %>,<%= Math.cbrt(27) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "1.4142135623730951,0.0,1.0,1.0,3.0,3.0,3.0,5.0,0.7853981633974483,1.0,3.0"
+  },
+  {
+    "name": "math_domain_error",
+    "template": "<%= Math.sqrt(-1) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "Math::DomainError"
+  },
+  {
+    "name": "float_constants",
+    "template": "<%= Float::EPSILON %>,<%= Float::MAX %>,<%= Float::MIN %>,<%= Float::NAN.nan? %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "2.220446049250313e-16,1.7976931348623157e+308,2.2250738585072014e-308,true"
+  },
+  {
+    "name": "number_class",
+    "template": "<%= 1.class %>,<%= 1.5.class %>,<%= 1.is_a?(Numeric) %>,<%= 1.5.is_a?(Integer) %>,<%= 1.is_a?(Comparable) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "Integer,Float,true,false,true"
+  },
+  {
+    "name": "large_int_ok",
+    "template": "<%= 9223372036854775807 %>,<%= -9223372036854775807 - 1 %>,<%= 2 ** 62 %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "9223372036854775807,-9223372036854775808,4611686018427387904"
+  },
+  {
+    "name": "float_arith_formatting",
+    "template": "<%= 0.1 * 3 %>,<%= 100.0 / 3 %>,<%= 1.1 + 2.2 %>,<%= 3.0 * 1.1 %>,<%= 1e15 + 0.3 %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "0.30000000000000004,33.333333333333336,3.3000000000000003,3.3000000000000003,1000000000000000.2"
+  }
+]

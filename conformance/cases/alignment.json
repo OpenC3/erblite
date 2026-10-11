@@ -1,0 +1,333 @@
+[
+  {
+    "name": "bang_precedence",
+    "template": "<%= !1 == 2 %>,<%= !nil == true %>,<%= !true && false %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "false,true,false"
+  },
+  {
+    "name": "bare_unknown_name_error",
+    "template": "<%= puts %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NameError"
+  },
+  {
+    "name": "unknown_call_with_args",
+    "template": "<%= puts('x') %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "unknown_call_with_command_arg",
+    "template": "<%= system 'ls' %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "command_arg_paren_space",
+    "template": "<%= [1, 2, 3].include? (2) %>,<%= 3.7.round (0) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "true,4"
+  },
+  {
+    "name": "command_arg_negative_number",
+    "template": "<% a = [3] %><% a.push -1 %><%= a.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[3, -1]"
+  },
+  {
+    "name": "local_minus_number",
+    "template": "<% x = 5 %><%= x -1 %>,<%= x - 1 %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "4,4"
+  },
+  {
+    "name": "host_var_minus_number",
+    "template": "<%= y -1 %>",
+    "vars": {
+      "y": 10
+    },
+    "ruby_compatible": true,
+    "expected": "9"
+  },
+  {
+    "name": "command_arg_bang",
+    "template": "<%= [true].include? !false %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "true"
+  },
+  {
+    "name": "shovel_codepoint",
+    "template": "<% s = 'a' %><% s << 66 %><%= s %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "aB"
+  },
+  {
+    "name": "shovel_type_error",
+    "template": "<% s = 'a' %><% s << nil %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "TypeError"
+  },
+  {
+    "name": "frozen_array_mutation",
+    "template": "<% a = [1].freeze %><% a << 2 %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "FrozenError"
+  },
+  {
+    "name": "frozen_hash_mutation",
+    "template": "<% h = {a: 1}.freeze %><% h[:b] = 2 %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "FrozenError"
+  },
+  {
+    "name": "frozen_queries",
+    "template": "<%= [1].freeze.frozen? %>,<%= [1].frozen? %>,<%= 'a'.frozen? %>,<%= :a.frozen? %>,<%= [1].freeze.dup.frozen? %>,<%= [1].freeze.map { |x| x }.frozen? %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "true,false,false,true,false,false"
+  },
+  {
+    "name": "frozen_string_shovel",
+    "template": "<% s = 'a'.freeze %><% s << 'b' %><%= s %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "expected": "ab"
+  },
+  {
+    "name": "split_nil_and_nul",
+    "template": "<%= \"a\\0b c\".split.inspect %>,<%= \" \\0a\\0 \".strip.inspect %>,<%= \"\\0 a\".lstrip.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[\"a\\u0000b\", \"c\"],\"a\",\"a\""
+  },
+  {
+    "name": "octal_escapes",
+    "template": "<%= \"\\101\\60\\0\".inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "\"A0\\u0000\""
+  },
+  {
+    "name": "symbol_inspect_variants",
+    "template": "<%= 'a?'.to_sym.inspect %>,<%= 'é'.to_sym.inspect %>,<%= '@a'.to_sym.inspect %>,<%= 'A'.to_sym.inspect %>,<%= '[]'.to_sym.inspect %>,<%= {'a=': 1, 'é': 2, 'B': 3}.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": ":a?,:é,:@a,:A,:[],{\"a=\": 1, é: 2, B: 3}"
+  },
+  {
+    "name": "string_inspect_unicode_controls",
+    "template": "<%= \"\\u0085\\u2028\\u00a0x\".inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "\"\\u0085\\u2028 x\""
+  },
+  {
+    "name": "output_tag_statement_modifier",
+    "template": "<%= 'y' if true %>|<%= 'n' if false %>|<%= %>|",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "y|||"
+  },
+  {
+    "name": "text_statement_value",
+    "template": "<% x = if true %>hi<% end %>[<%= x %>]",
+    "vars": {},
+    "ruby_compatible": false,
+    "expected": "hi[hi]"
+  },
+  {
+    "name": "text_statement_value_in_block",
+    "template": "<% r = [1, 2].map { %>a<% } %>|<%= r.inspect %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "expected": "aa|[\"a\", \"aa\"]"
+  },
+  {
+    "name": "trim_after_inline_close",
+    "template": "<%= 1 %>  <%- x = 1 %>y",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "1y"
+  },
+  {
+    "name": "trim_after_escaped_open",
+    "template": "a <%% b  <%- x = 1 -%>\nc",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "a <% b  c"
+  },
+  {
+    "name": "hash_block_arity",
+    "template": "<% h = {a: 1} %><%= h.select { |x| x == :a }.size %>,<%= h.reject { |x| x == :a }.size %>,<%= h.filter_map { |x| x }.inspect %>,<%= h.transform_values { |x| x.inspect }.inspect %>,<%= h.transform_keys { |x| x.inspect }.inspect %>,<%= h.min_by { |x| x }.inspect %>,<%= h.count { |x| x.is_a?(Array) } %>,<% h.each_key { |x| %><%= x.inspect %><% } %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "1,0,[[:a, 1]],{a: \"1\"},{\":a\" => 1},[:a, 1],1,:a"
+  },
+  {
+    "name": "eql_and_case_equality",
+    "template": "<%= 1.eql?(1) %>,<%= 1.eql?(1.0) %>,<%= 'a'.eql?('a') %>,<%= Integer === 3 %>,<%= (1..3) === 2 %>,<%= 'a' === 'a' %>,<%= (nil <=> nil) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "true,false,true,true,true,true,0"
+  },
+  {
+    "name": "float_floor_ceil_digits",
+    "template": "<%= 75.933.ceil(4) %>,<%= 1.23456.floor(2) %>,<%= -1.23456.ceil(3) %>,<%= 12345.6789.floor(-2) %>,<%= 2.5.ceil(0) %>,<%= 0.1.floor(20) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "75.9331,1.23,-1.234,12300,3,0.1"
+  },
+  {
+    "name": "float_round_many_digits",
+    "template": "<%= 0.1.round(15) %>,<%= 1.0e-10.round(15) %>,<%= 0.123456789012345678.round(16) %>,<%= 1.5e-7.round(16) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "0.1,1.0e-10,0.1234567890123457,1.5e-07"
+  },
+  {
+    "name": "intermediate_bignum",
+    "template": "<%= -2 ** 63 %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "RangeError"
+  },
+  {
+    "name": "chr_high",
+    "template": "<%= 200.chr.ord %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "expected": "200"
+  },
+  {
+    "name": "enumerator_alias_inspect",
+    "template": "<%= [1].collect.inspect %>,<%= {a: 1}.each_pair.inspect %>,<%= 1.step(10, 3).inspect %>,<%= (1..10).step(2).inspect %>,<%= [1, 2].each_with_index.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "#<Enumerator: [1]:collect>,#<Enumerator: {a: 1}:each_pair>,(1.step(10, 3)),((1..10).step(2)),#<Enumerator: [1, 2]:each_with_index>"
+  },
+  {
+    "name": "multi_value_assign_array",
+    "template": "<% a = 1, 2 %><%= a.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[1, 2]"
+  },
+  {
+    "name": "operator_method_calls",
+    "template": "<%= 1.+(2) %>,<%= [5, 6].[](1) %>,<%= 2.*(3) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "3,6,6"
+  },
+  {
+    "name": "endless_beginless_ranges_index",
+    "template": "<%= 'hello'[..1] %>,<%= 'hello'[3..] %>,<%= [1, 2, 3][1..].inspect %>,<%= [1, 2, 3][...-1].inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "he,lo,[2, 3],[1, 2]"
+  },
+  {
+    "name": "string_to_i_whitespace",
+    "template": "<%= \"\\n\\t 12\".to_i %>,<%= \"\\v3.5\".to_f %>,<%= \"\\0 5\".to_i %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "12,3.5,0"
+  },
+  {
+    "name": "format_positional",
+    "template": "<%= format('%2$s %1$s', 'a', 'b') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "b a"
+  },
+  {
+    "name": "format_percent_with_flags_error",
+    "template": "<%= format('%5%') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "ArgumentError"
+  },
+  {
+    "name": "size_cap_string",
+    "template": "<%= ('a' * 20_000_000).size %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "LimitError"
+  },
+  {
+    "name": "size_cap_array",
+    "template": "<%= ([0] * 20_000_000).size %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "LimitError"
+  },
+  {
+    "name": "size_cap_range_to_a",
+    "template": "<%= (1..20_000_000).to_a.size %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "LimitError"
+  },
+  {
+    "name": "range_large_sum_ok",
+    "template": "<%= (1..20_000_000).sum %>,<%= (1..20_000_000).size %>,<%= (1..20_000_000).include?(5) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "200000010000000,20000000,true"
+  },
+  {
+    "name": "json_depth_limit",
+    "template": "<%= JSON.parse('[' * 101 + ']' * 101) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]"
+  },
+  {
+    "name": "json_parse_infinity_literal",
+    "template": "<%= JSON.parse('[1e400]').inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[Infinity]"
+  },
+  {
+    "name": "json_lone_surrogate",
+    "template": "<%= JSON.parse('\"\\\\ud800\"') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "JSON::ParserError"
+  },
+  {
+    "name": "json_leading_zero",
+    "template": "<%= JSON.parse('[01]') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "JSON::ParserError"
+  },
+  {
+    "name": "chunk_while_returns",
+    "template": "<%= [1, 2, 4].chunk_while { |a, b| b == a + 1 }.to_a.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[[1, 2], [4]]"
+  },
+  {
+    "name": "output_tag_multiple_statements",
+    "template": "<%= a = 2; a * 3 %>|<%= 1\n2 %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "6|2"
+  }
+]

@@ -1,0 +1,104 @@
+- t: "<%= 1 + 2 * 3 %>"
+  x: "7"
+- t: "<%= (1 + 2) * 3 %>"
+- t: "<%= 2 ** 3 ** 2 %>"
+- t: "<%= -2 ** 2 %>"
+- t: "<%= (-2) ** 2 %>"
+- t: "<% x = 2 %><%= -x ** 2 %>"
+- t: "<%= -2.abs %>"
+- t: "<% x = 5 %><%= x -1 %>"
+- t: "<% x = 5 %><%= x - -1 %>"
+- t: "<%= 10 - 2 - 3 %>"
+- t: "<%= 7 / 2 %>,<%= -7 / 2 %>,<%= 7 / -2 %>,<%= -7 / -2 %>"
+- t: "<%= 7 % 3 %>,<%= -7 % 3 %>,<%= 7 % -3 %>,<%= -7 % -3 %>"
+- t: "<%= 7.0 / 2 %>,<%= 7 / 2.0 %>,<%= 1 / 3.0 %>"
+- t: "<%= 7.5 % 2 %>,<%= -7.5 % 2 %>,<%= 7.5 % -2 %>"
+- t: "<%= 1.0 / 0 %>,<%= -1.0 / 0 %>,<%= (0.0 / 0).nan? %>"
+- t: "<%= 1 / 0 %>"
+- t: "<%= 1 % 0 %>"
+- t: "<%= 2 ** 10 %>,<%= 2 ** 0.5 %>,<%= 2.0 ** 3 %>,<%= 4 ** 0 %>"
+- t: "<%= 1 + 1.5 %>,<%= 3 * 1.5 %>,<%= 0.1 + 0.2 %>"
+- t: "<%= 5 & 3 %>,<%= 5 | 3 %>,<%= 5 ^ 3 %>,<%= ~5 %>,<%= 1 << 4 %>,<%= 256 >> 4 %>,<%= 1 << -1 %>,<%= -16 >> 2 %>"
+- t: "<%= 1 | 2 & 3 %>,<%= 1 + 2 << 1 %>"
+- t: "<%= 1 < 2 %>,<%= 2 <= 2 %>,<%= 3 > 4 %>,<%= 4 >= 5 %>,<%= 1 == 1.0 %>,<%= 1 != 2 %>"
+- t: "<%= 1 <=> 2 %>,<%= 2 <=> 2 %>,<%= 3 <=> 2 %>,<%= (1 <=> 'a').inspect %>"
+- t: "<%= 'a' < 'b' %>,<%= 'abc' <=> 'abd' %>,<%= [1, 2] <=> [1, 3] %>"
+- t: "<%= 1 < 'a' %>"
+- t: "<%= true && false %>,<%= true || false %>,<%= !true %>,<%= nil || 'd' %>,<%= 1 && 2 %>"
+- t: "<%= (true and false) %>,<%= (nil or 5) %>,<%= (not true) %>"
+- t: "<% a = false or true %><%= a %>"
+- t: "<% a = nil && 1 %><%= a.inspect %>"
+- t: "<%= true ? 'y' : 'n' %>,<%= nil ? 'y' : 'n' %>,<%= 0 ? 'y' : 'n' %>"
+- t: "<% x = 5 %><%= x > 3 ? x > 4 ? 'big' : 'mid' : 'small' %>"
+- t: "<% x = 3 %><%= x.zero? ? 'z' : 'nz' %>"
+- n: assign_chain
+  t: "<% a = b = 3 %><%= a %><%= b %>"
+- n: op_assign
+  t: "<% a = 10; a += 5; a -= 3; a *= 2; a /= 4; a %= 4; a **= 3 %><%= a %>"
+- n: or_assign
+  t: "<% a = nil; a ||= 4; a ||= 5; b = 1; b &&= 7 %><%= a %>,<%= b %>"
+- n: shovel_assign
+  t: "<% s = 'a'; s <<= 'b'; a = [1]; a <<= 2 %><%= s %>,<%= a %>"
+- n: bit_or_assign
+  t: "<% f = 1; f |= 4; f &= 5 %><%= f %>"
+- n: index_op_assign
+  t: "<% h = {a: 1}; h[:a] += 1; h[:b] ||= 9; arr = [1, 2]; arr[0] *= 5 %><%= h %>,<%= arr %>"
+- n: multiple_assign
+  t: "<% a, b = 1, 2 %><%= a %>,<%= b %>"
+- n: multiple_assign_swap
+  t: "<% a, b = 1, 2; a, b = b, a %><%= a %>,<%= b %>"
+- n: multiple_assign_from_array
+  t: "<% a, b, c = [1, 2] %><%= a %>,<%= b %>,<%= c.inspect %>"
+- n: integer_literals
+  t: "<%= 1_000 %>,<%= 0x1F %>,<%= 0b101 %>,<%= 0o17 %>,<%= 017 %>,<%= -0x10 %>"
+- n: float_literals
+  t: "<%= 1.5 %>,<%= 1e3 %>,<%= 1.5e-3 %>,<%= 2E2 %>,<%= 1_000.5 %>"
+- n: string_literals
+  t: |-
+    <%= 'a\'b\\c\n' %>|<%= "a\tb\\c\"d" %>|<%= "é\u{1F600}\x41" %>|<%= "\s\#{x}" %>
+- n: interpolation
+  t: '<% n = 3 %><%= "n=#{n}, sq=#{n * n}, s=#{"in#{n}"}, h=#{ {a: 1}[:a] }" %>'
+- n: interpolation_nil
+  t: '<%= "x#{nil}y#{[1, nil]}" %>'
+- n: symbols
+  t: "<%= :abc %>,<%= :abc.inspect %>,<%= :a? %>,<%= :\"with space\".inspect %>,<%= :abc == 'abc' %>"
+- n: percent_w
+  t: "<%= %w[a b c].inspect %>,<%= %i(x y).inspect %>,<%= %w{one two}.size %>"
+- n: nil_literal
+  t: "<%= nil.inspect %>,<%= nil.to_a.inspect %>,<%= nil.to_i %>,<%= nil.to_s.empty? %>"
+- n: array_literal
+  t: "<%= [1, 'a', :b, nil, true, 1.5, [2]].inspect %>"
+- n: hash_literal
+  t: "<%= {a: 1, 'b' => 2, 3 => [4], nil => nil, :c => :d}.inspect %>"
+- n: hash_literal_empty
+  t: "<%= {}.inspect %>,<%= [].inspect %>"
+- n: range_literal
+  t: "<%= (1..3).to_a.inspect %>,<%= (1...3).to_a.inspect %>,<%= (1..3).inspect %>"
+- n: parens_statements
+  t: "<%= (a = 1; a + 1) %>"
+- n: safe_navigation
+  t: "<% a = nil; b = 'x' %><%= a&.upcase.inspect %>,<%= b&.upcase %>"
+- n: block_pass_symbol
+  t: "<%= %w[a b].map(&:upcase).inspect %>,<%= [1, 2, 3].inject(:+) %>,<%= [[1, 2]].map(&:first) %>"
+- n: command_call_args
+  t: "<% list = [1, 2, 3] %><%= list.include? 2 %>,<%= list.first 2 %>"
+- n: command_call_with_block
+  t: "<% r = [] %><% [1, 2, 3, 4].each_slice 2 do |s| %><% r << s.sum %><% end %><%= r.inspect %>"
+- n: equality_mixed
+  t: "<%= [1, 2] == [1, 2.0] %>,<%= {a: 1} == {a: 1.0} %>,<%= 'a' == :a %>,<%= nil == false %>,<%= (1..2) == (1..2) %>"
+- n: not_operator_method
+  t: "<%= !nil %>,<%= !!1 %>,<%= ![].empty? %>"
+- n: double_negative_literal_method
+  t: "<%= -3.abs %>,<%= - 3.abs %>"
+- n: precedence_mixed
+  t: "<%= 1 + 2 == 3 && 4 > 3 || false %>"
+- n: string_mult_concat
+  t: "<%= 'ab' * 3 + 'c' %>"
+- n: constant_lookup
+  t: "<%= Math::PI.round(4) %>,<%= Float::INFINITY %>,<%= Math.sqrt(16) %>"
+- n: string_plus_int
+  t: "<%= 'a' + 1 %>"
+- n: int_plus_string
+  t: "<%= 1 + 'a' %>"
+- n: nil_plus
+  t: "<%= nil + 1 %>"

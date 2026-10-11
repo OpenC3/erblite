@@ -1,0 +1,338 @@
+[
+  {
+    "name": "if_elsif_else",
+    "template": "<% [1, 2, 3].each do |x| %><% if x == 1 %>one<% elsif x == 2 %>two<% else %>many<% end %>,<% end %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "one,two,many,"
+  },
+  {
+    "name": "unless_else",
+    "template": "<% unless false %>a<% else %>b<% end %><% unless true %>c<% else %>d<% end %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "ad"
+  },
+  {
+    "name": "if_expression_value",
+    "template": "<% v = if false then 1 else 2 end %><%= v %>,<%= (if false then 1 end).inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "2,nil"
+  },
+  {
+    "name": "modifier_if_unless",
+    "template": "<% x = 1 if true %><% y = 2 unless true %><%= x %>,<%= y.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "1,nil"
+  },
+  {
+    "name": "modifier_while",
+    "template": "<% i = 0 %><% i += 1 while i < 5 %><%= i %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "5"
+  },
+  {
+    "name": "modifier_until",
+    "template": "<% i = 0 %><% i += 2 until i > 5 %><%= i %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "6"
+  },
+  {
+    "name": "while_loop",
+    "template": "<% i = 0 %><% while i < 3 %><%= i %><% i += 1 %><% end %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "012"
+  },
+  {
+    "name": "while_do",
+    "template": "<% i = 0 %><% while i < 3 do i += 1 end %><%= i %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "3"
+  },
+  {
+    "name": "until_loop",
+    "template": "<% i = 3 %><% until i == 0 %><%= i %><% i -= 1 %><% end %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "321"
+  },
+  {
+    "name": "while_break_next",
+    "template": "<% i = 0 %><% while true %><% i += 1 %><% next if i == 2 %><% break if i > 4 %><%= i %><% end %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "134"
+  },
+  {
+    "name": "for_loop",
+    "template": "<% for x in [1, 2, 3] %><%= x * 2 %><% end %>|<%= x %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "246|3"
+  },
+  {
+    "name": "for_range",
+    "template": "<% for i in 1..3 do %><%= i %><% end %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "123"
+  },
+  {
+    "name": "for_hash_two_vars",
+    "template": "<% for k, v in {a: 1, b: 2} %><%= k %>=<%= v %>;<% end %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "a=1;b=2;"
+  },
+  {
+    "name": "loop_break_value",
+    "template": "<% i = 0 %><% r = loop do i += 1; break i * 10 if i == 3; end %><%= r %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "30"
+  },
+  {
+    "name": "each_break_value",
+    "template": "<% r = [1, 2, 3].each { |x| break x * 100 if x == 2 } %><%= r %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "200"
+  },
+  {
+    "name": "each_returns_receiver",
+    "template": "<% r = [1, 2].each { |x| x } %><%= r.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[1, 2]"
+  },
+  {
+    "name": "next_in_map",
+    "template": "<%= [1, 2, 3, 4].map { |x| next 0 if x.even?; x }.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[1, 0, 3, 0]"
+  },
+  {
+    "name": "next_no_value",
+    "template": "<%= [1, 2].map { |x| next if x == 1; x }.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[nil, 2]"
+  },
+  {
+    "name": "case_values",
+    "template": "<% [1, 5, 'a', nil, 2.5].each do |v| %><%= case v when 1, 2 then 'low' when 3..6 then 'mid' when String then 'str' when nil then 'nil' else 'other' end %>,<% end %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "low,mid,str,nil,other,"
+  },
+  {
+    "name": "case_no_subject",
+    "template": "<% x = 7 %><%= case when x < 5 then 'a' when x < 10 then 'b' end %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "b"
+  },
+  {
+    "name": "case_no_match",
+    "template": "<%= (case 9 when 1 then 'a' end).inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "nil"
+  },
+  {
+    "name": "case_class_numeric",
+    "template": "<%= case 1.5 when Integer then 'i' when Numeric then 'n' end %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "n"
+  },
+  {
+    "name": "case_multiline",
+    "template": "<%\n  x = :b\n  r = case x\n      when :a\n        1\n      when :b\n        2\n      end\n%><%= r %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "2"
+  },
+  {
+    "name": "block_scope_new_var",
+    "template": "<% [1].each { |i| inner = i } %><%= defined_inner = 1 %><%= inner %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "NameError"
+  },
+  {
+    "name": "block_scope_outer_assign",
+    "template": "<% total = 0 %><% [1, 2, 3].each { |i| total += i } %><%= total %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "6"
+  },
+  {
+    "name": "block_param_shadows",
+    "template": "<% x = 10 %><% [1, 2].each { |x| x } %><%= x %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "10"
+  },
+  {
+    "name": "var_assigned_in_untaken_branch",
+    "template": "<% if false %><% y = 1 %><% end %><%= y.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "nil"
+  },
+  {
+    "name": "var_before_assign_is_error",
+    "template": "<%= z %><% z = 1 %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "NameError"
+  },
+  {
+    "name": "block_var_declared_outer_later",
+    "template": "<% [1].each { |i| w = i } %><% w = 5 %><%= w %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "5"
+  },
+  {
+    "name": "block_outer_declared_in_untaken_branch",
+    "template": "<% if false %><% q = 0 %><% end %><% [1, 2].each { |i| q = i } %><%= q %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "2"
+  },
+  {
+    "name": "closure_reads_outer",
+    "template": "<% m = 3 %><%= [1, 2].map { |x| x * m }.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[3, 6]"
+  },
+  {
+    "name": "block_auto_splat",
+    "template": "<%= [[1, 2], [3, 4]].map { |a, b| a + b }.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[3, 7]"
+  },
+  {
+    "name": "block_one_param_no_splat",
+    "template": "<%= [[1, 2], [3, 4]].map { |a| a }.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[[1, 2], [3, 4]]"
+  },
+  {
+    "name": "block_extra_params_nil",
+    "template": "<%= [1, 2].map { |a, b| b.inspect }.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[\"nil\", \"nil\"]"
+  },
+  {
+    "name": "block_destructure",
+    "template": "<%= {a: 1, b: 2}.each_with_index.map { |(k, v), i| \"#{k}#{v}#{i}\" }.join(',') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "a10,b21"
+  },
+  {
+    "name": "nested_blocks",
+    "template": "<%= [1, 2].map { |a| [10, 20].map { |b| a * b } }.inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "[[10, 20], [20, 40]]"
+  },
+  {
+    "name": "times_loop",
+    "template": "<% 3.times do |i| %><%= i %><% end %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "012"
+  },
+  {
+    "name": "upto_downto",
+    "template": "<% 1.upto(3) { |i| %><%= i %><% } %>|<% 3.downto(1) { |i| %><%= i %><% } %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "123|321"
+  },
+  {
+    "name": "step_loop",
+    "template": "<% 1.step(10, 3) { |i| %><%= i %>,<% } %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "1,4,7,10,"
+  },
+  {
+    "name": "break_in_times",
+    "template": "<% r = 10.times { |i| break i if i == 4 } %><%= r %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "4"
+  },
+  {
+    "name": "times_return",
+    "template": "<%= 3.times { } %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "3"
+  },
+  {
+    "name": "next_outside_loop",
+    "template": "<% next %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "break_outside_loop",
+    "template": "<% break %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "SyntaxError"
+  },
+  {
+    "name": "while_returns_nil",
+    "template": "<% i = 0 %><%= (while i < 2 do i += 1 end).inspect %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "nil"
+  },
+  {
+    "name": "deep_nesting_text",
+    "template": "<%- (1..2).each do |i| -%>\n<%- if i.odd? -%>\nodd <%= i %>\n<%- else -%>\neven <%= i %>\n<%- end -%>\n<%- end -%>\n",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "odd 1\neven 2\n"
+  },
+  {
+    "name": "undefined_method_call",
+    "template": "<%= foo %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "NameError"
+  },
+  {
+    "name": "undefined_method_with_args",
+    "template": "<%= foo(1) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "NoMethodError"
+  },
+  {
+    "name": "block_local_not_visible",
+    "template": "<% [1].each { |i| bv = 1 } %><%= bv %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "NameError"
+  }
+]

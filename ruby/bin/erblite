@@ -1,0 +1,45 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Usage: erblite template.erb [--vars vars.json] [--base-dir DIR] [--max-steps N]
+$LOAD_PATH.unshift File.expand_path("../lib", __dir__)
+require "erblite"
+
+def usage
+  warn "usage: erblite TEMPLATE [--vars VARS.json] [--base-dir DIR] [--max-steps N]"
+  exit 2
+end
+
+template = nil
+vars_path = nil
+base_dir = nil
+max_steps = nil
+args = ARGV.dup
+until args.empty?
+  arg = args.shift
+  case arg
+  when "--vars" then vars_path = args.shift || usage
+  when "--base-dir" then base_dir = args.shift || usage
+  when "--max-steps" then max_steps = Integer(args.shift || usage)
+  when "-h", "--help" then usage
+  else
+    usage if template
+    template = arg
+  end
+end
+usage unless template
+
+begin
+  vars = {}
+  if vars_path
+    vars = ERBLite::JSONSupport.parse(File.read(vars_path), nil)
+    raise ERBLite::Error.new("TypeError", "--vars must contain a JSON object", vars_path, 1) unless vars.is_a?(Hash)
+  end
+  $stdout.write(ERBLite.render_file(template, vars, base_dir: base_dir, max_steps: max_steps))
+rescue ERBLite::Error => e
+  warn e.to_s
+  exit 1
+rescue SystemCallError => e
+  warn "erblite: #{e.message}"
+  exit 1
+end

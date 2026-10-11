@@ -1,0 +1,142 @@
+[
+  {
+    "name": "integers",
+    "template": "<%= format('%d|%5d|%-5d|%05d|%+d|% d|%x|%X|%#x|%o|%#o|%b|%#b|%08b|%i|%u', 42, 42, 42, 42, 42, 42, 255, 255, 255, 8, 8, 5, 5, 5, 7, 9) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "42|   42|42   |00042|+42| 42|ff|FF|0xff|10|010|101|0b101|00000101|7|9"
+  },
+  {
+    "name": "negative_ints",
+    "template": "<%= format('%d|%5d|%05d|%+x|% o', -42, -42, -42, -255, -8) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "-42|  -42|-0042|-ff|-10"
+  },
+  {
+    "name": "floats",
+    "template": "<%= format('%f|%.2f|%8.3f|%-8.1f|%08.2f|%+.1f|%.0f|%.0f|%.0f|%#.0f', 3.14159, 3.14159, 3.14159, 3.14159, -3.14159, 2.0, 2.5, 3.5, 0.5, 3.0) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "3.141590|3.14|   3.142|3.1     |-0003.14|+2.0|2|4|0|3."
+  },
+  {
+    "name": "exp_g",
+    "template": "<%= format('%e|%.2e|%E|%g|%g|%g|%g|%g|%G|%.3g|%#g|%g|%g', 12345.678, 0.000123, 1.5, 0.0001, 0.00001, 1e20, 123456789.0, 100000.0, 1e-10, 3.14159, 1.0, 1e6, 123456.0) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "1.234568e+04|1.23e-04|1.500000E+00|0.0001|1e-05|1e+20|1.23457e+08|100000|1E-10|3.14|1.00000|1e+06|123456"
+  },
+  {
+    "name": "strings_p_c",
+    "template": "<%= format('%s|%10s|%-10s|%.2s|%p|%p|%c|%c|%%', 'hello', 'hi', 'hi', 'hello', 'q', :s, 65, 'xyz') %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "hello|        hi|hi        |he|\"q\"|:s|A|x|%"
+  },
+  {
+    "name": "int_from_float_and_string",
+    "template": "<%= format('%d,%d,%d,%x', 3.99, -3.99, '42', 255.9) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "3,-3,42,ff"
+  },
+  {
+    "name": "float_from_int",
+    "template": "<%= format('%.2f|%e', 3, 10) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "3.00|1.000000e+01"
+  },
+  {
+    "name": "string_percent",
+    "template": "<%= '%05.1f' % 2.25 %>|<%= '%s-%s' % ['a', 'b'] %>|<%= '%d%%' % 50 %>|<%= 'TEMP%02d' % 3 %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "002.2|a-b|50%|TEMP03"
+  },
+  {
+    "name": "named",
+    "template": "<%= format('%<a>d-%<b>s', a: 1, b: 'x') %>|<%= format('%{a}/%{b}', a: 1, b: 'x') %>|<%= format('%<f>.2f', f: 1.234) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "1-x|1/x|1.23"
+  },
+  {
+    "name": "star_width",
+    "template": "<%= format('%*d|%-*d|%.*f', 5, 1, 4, 2, 2, 3.14159) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "    1|2   |3.14"
+  },
+  {
+    "name": "too_few_args",
+    "template": "<%= format('%d %d', 1) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "ArgumentError"
+  },
+  {
+    "name": "nan_inf",
+    "template": "<%= format('%f|%f|%.2e|%g|%5.1f', Float::NAN, Float::INFINITY, -Float::INFINITY, Float::NAN, Float::INFINITY) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "NaN|Inf|-Inf|NaN|  Inf"
+  },
+  {
+    "name": "big_values",
+    "template": "<%= format('%.3f|%e|%g|%.10f', 1e20, 9.999999e99, 1e-300, 1.0/3) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "100000000000000000000.000|9.999999e+99|1e-300|0.3333333333"
+  },
+  {
+    "name": "sprintf_alias",
+    "template": "<%= sprintf('%03d', 7) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "007"
+  },
+  {
+    "name": "precision_on_int",
+    "template": "<%= format('%.3d|%8.3d|%.0d', 5, 5, 0) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "005|     005|"
+  },
+  {
+    "name": "hex_uppercase_prefix",
+    "template": "<%= format('%#X|%#B|%#o', 255, 5, 0) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "0XFF|0B101|0"
+  },
+  {
+    "name": "float_rounding_ties",
+    "template": "<%= format('%.1f|%.1f|%.1f|%.2f|%.2f', 0.25, 0.35, 0.45, 1.005, 2.675) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "0.2|0.4|0.4|1.00|2.68"
+  },
+  {
+    "name": "s_with_nil_array",
+    "template": "<%= format('%s|%s|%s', nil, [1, 'a'], {a: 1}) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "expected": "|[1, \"a\"]|{a: 1}"
+  },
+  {
+    "name": "negative_hex_error",
+    "template": "<%= format('%x', -255) %>",
+    "vars": {},
+    "ruby_compatible": false,
+    "error": "ArgumentError"
+  },
+  {
+    "name": "bad_directive",
+    "template": "<%= format('%y', 1) %>",
+    "vars": {},
+    "ruby_compatible": true,
+    "error": "ArgumentError"
+  }
+]
