@@ -1192,7 +1192,7 @@ module ERBLite
         x = Builtins.math_arg(a[0])
         case nm
         when "sqrt" then Math.sqrt(x)
-        when "cbrt" then Math.cbrt(x)
+        when "cbrt" then Builtins.cbrt(x)
         when "sin" then Math.sin(x)
         when "cos" then Math.cos(x)
         when "tan" then Math.tan(x)
@@ -1211,6 +1211,32 @@ module ERBLite
     defm(math, "atan2", 2) { |_, _, a| Math.atan2(Builtins.math_arg(a[0]), Builtins.math_arg(a[1])) }
     defm(math, "hypot", 2) { |_, _, a| Math.hypot(Builtins.math_arg(a[0]), Builtins.math_arg(a[1])) }
     CLASS_METHODS["Math"] = math
+
+    # Correctly rounded cube root [ERBLite]. Platform cbrt() results (and Ruby's
+    # own glibc Newton correction) are off by one ulp for some inputs, differently
+    # per platform. Start from Math.cbrt and step to the double whose rounding
+    # interval contains the exact root, comparing cubes of the interval midpoints
+    # exactly. A midpoint's cube is never exactly a double, so there are no ties.
+    def self.cbrt(x)
+      return x if x.zero? || !x.finite?
+      return -cbrt(-x) if x.negative?
+
+      y = Math.cbrt(x)
+      rx = x.to_r
+      loop do
+        up = y.next_float
+        if rx > ((y.to_r + up.to_r) / 2)**3
+          y = up
+          next
+        end
+        down = y.prev_float
+        if rx < ((down.to_r + y.to_r) / 2)**3
+          y = down
+          next
+        end
+        return y
+      end
+    end
 
     def self.math_arg(x)
       return x if x.is_a?(Integer) || x.is_a?(Float)

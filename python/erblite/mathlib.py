@@ -13,6 +13,7 @@ from __future__ import annotations
 import math
 import sys
 from collections.abc import Callable
+from fractions import Fraction
 from typing import Any
 
 from .errors import RubyError
@@ -30,13 +31,30 @@ def _domain(name: str) -> RubyError:
 
 
 def _cbrt(x: float) -> float:
-    if sys.version_info >= (3, 11):
-        return math.cbrt(x)
+    """Correctly rounded cube root [ERBLite].
+
+    Platform cbrt() implementations (glibc, macOS libm) are off by one ulp for some
+    inputs, and differently so, which would make output platform dependent. Start from
+    an estimate and step to the double whose rounding interval contains the exact root,
+    comparing cubes of the interval's midpoints exactly. A midpoint's cube is never
+    exactly a double, so there are no ties.
+    """
     if x == 0.0 or not math.isfinite(x):
         return x
-    y = math.copysign(abs(x) ** (1.0 / 3.0), x)
-    y = y - (y * y * y - x) / (3.0 * y * y)
-    return y
+    if x < 0.0:
+        return -_cbrt(-x)
+    y = math.cbrt(x) if sys.version_info >= (3, 11) else x ** (1.0 / 3.0)
+    fx = Fraction(x)
+    while True:
+        up = math.nextafter(y, math.inf)
+        if fx > ((Fraction(y) + Fraction(up)) / 2) ** 3:
+            y = up
+            continue
+        down = math.nextafter(y, 0.0)
+        if fx < ((Fraction(down) + Fraction(y)) / 2) ** 3:
+            y = down
+            continue
+        return y
 
 
 def _sqrt(x: float) -> float:

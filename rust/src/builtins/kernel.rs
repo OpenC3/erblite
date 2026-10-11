@@ -17,6 +17,7 @@ use crate::error::{
 use crate::format::{float_to_int, sprintf};
 use crate::interp::{BlockArg, Interp};
 use crate::value::{ClassId, RHash, Value};
+use std::cmp::Ordering;
 use std::sync::Arc;
 
 /// Calls a bare function (an identifier that is not a local or host variable).
@@ -162,6 +163,108 @@ fn domain<T>(name: &str) -> R<T> {
     )
 }
 
+/// Correctly rounded cube root [ERBLite]. Platform `cbrt()` results are off by one
+/// ulp for some inputs, differently per platform. Start from `f64::cbrt` and step to
+/// the double whose rounding interval contains the exact root, comparing cubes of the
+/// interval midpoints exactly. A midpoint's cube is never exactly a double, so there
+/// are no ties.
+fn cbrt(x: f64) -> f64 {
+    if x == 0.0 || !x.is_finite() {
+        return x;
+    }
+    if x < 0.0 {
+        return -cbrt(-x);
+    }
+    let mut y = x.cbrt();
+    loop {
+        // y > 0 and far from the f64 range limits, so stepping the bits moves one ulp.
+        let up = f64::from_bits(y.to_bits() + 1);
+        if cmp_midpoint_cube(y, up, x) == Ordering::Less {
+            y = up;
+            continue;
+        }
+        let down = f64::from_bits(y.to_bits() - 1);
+        if cmp_midpoint_cube(down, y, x) == Ordering::Greater {
+            y = down;
+            continue;
+        }
+        return y;
+    }
+}
+
+/// Positive finite `v` as `m * 2^e`.
+fn decompose(v: f64) -> (u64, i64) {
+    let bits = v.to_bits();
+    let exp = ((bits >> 52) & 0x7ff) as i64;
+    let frac = bits & ((1 << 52) - 1);
+    if exp == 0 {
+        (frac, -1074)
+    } else {
+        (frac | (1 << 52), exp - 1075)
+    }
+}
+
+/// Exactly compares `((a + b) / 2)^3` with `x` for adjacent positive doubles `a < b`.
+fn cmp_midpoint_cube(a: f64, b: f64, x: f64) -> Ordering {
+    let (ma, ea) = decompose(a);
+    let (mb, eb) = decompose(b);
+    let e = ea.min(eb);
+    // Mantissas are < 2^53 and exponents differ by at most 1, so the sum is < 2^55.
+    let sum = (ma << (ea - e)) + (mb << (eb - e));
+    let mut cube = [sum, 0, 0, 0, 0];
+    big_mul(&mut cube, sum);
+    big_mul(&mut cube, sum);
+    let (mx, ex) = decompose(x);
+    cmp_scaled(&cube, 3 * (e - 1), &[mx, 0, 0, 0, 0], ex)
+}
+
+type Big = [u64; 5];
+
+fn big_mul(n: &mut Big, m: u64) {
+    let mut carry = 0u128;
+    for limb in n.iter_mut() {
+        let t = (*limb as u128) * (m as u128) + carry;
+        *limb = t as u64;
+        carry = t >> 64;
+    }
+}
+
+fn big_bits(n: &Big) -> i64 {
+    match n.iter().rposition(|&l| l != 0) {
+        Some(i) => (i as i64) * 64 + 64 - n[i].leading_zeros() as i64,
+        None => 0,
+    }
+}
+
+fn big_shl(n: &Big, shift: i64) -> Big {
+    let (words, bits) = ((shift / 64) as usize, (shift % 64) as u32);
+    let mut out = [0u64; 5];
+    for i in (words..5).rev() {
+        let src = i - words;
+        out[i] = n[src] << bits;
+        if bits > 0 && src > 0 {
+            out[i] |= n[src - 1] >> (64 - bits);
+        }
+    }
+    out
+}
+
+/// Compares `a * 2^ea` with `b * 2^eb` (both nonzero).
+fn cmp_scaled(a: &Big, ea: i64, b: &Big, eb: i64) -> Ordering {
+    let (la, lb) = (big_bits(a) + ea, big_bits(b) + eb);
+    if la != lb {
+        return la.cmp(&lb);
+    }
+    // Same magnitude: aligning the exponents keeps both within the bit length of
+    // the longer operand, which fits in a Big.
+    let (a, b) = if ea > eb {
+        (big_shl(a, ea - eb), *b)
+    } else {
+        (*a, big_shl(b, eb - ea))
+    };
+    a.iter().rev().cmp(b.iter().rev())
+}
+
 fn math(name: &str, args: &[Value]) -> R<Value> {
     let two = matches!(name, "atan2" | "hypot");
     if name == "log" {
@@ -179,7 +282,7 @@ fn math(name: &str, args: &[Value]) -> R<Value> {
             }
             x.sqrt()
         }
-        "cbrt" => x.cbrt(),
+        "cbrt" => cbrt(x),
         "sin" => x.sin(),
         "cos" => x.cos(),
         "tan" => x.tan(),
