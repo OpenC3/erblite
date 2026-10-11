@@ -1,3 +1,11 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! ERBLite: a sandboxed template engine with ERB syntax and a safe subset of Ruby.
 //!
 //! Templates are tokenized, parsed into an AST and run by a tree-walking interpreter.
@@ -27,13 +35,13 @@ mod value;
 pub use error::Error;
 pub use value::{ClassId, RHash, Value};
 
-use std::sync::Arc;
 use error::Flow;
 use interp::{flow_to_error, Ctx, Interp};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::rc::Rc;
+use std::sync::Arc;
 
 /// Host variables: the template's starting local variables.
 pub type Vars = HashMap<String, Value>;
@@ -86,18 +94,20 @@ pub(crate) fn compile_program(source: &str, names: &[String]) -> Result<Vec<ast:
         other => return other,
     }
     let result = std::thread::scope(|scope| {
-        let handle = std::thread::Builder::new().stack_size(PARSE_STACK).spawn_scoped(scope, || {
-            let _guard = stack::enter_with(PARSE_STACK - (4 << 20));
-            parse_here(source, names).map_err(|f| match f {
-                Flow::Err(e) => e,
-                _ => Box::new(error::RtError {
-                    kind: error::SYNTAX_ERROR,
-                    message: "invalid break/next".into(),
-                    line: None,
-                    filename: None,
-                }),
-            })
-        });
+        let handle = std::thread::Builder::new()
+            .stack_size(PARSE_STACK)
+            .spawn_scoped(scope, || {
+                let _guard = stack::enter_with(PARSE_STACK - (4 << 20));
+                parse_here(source, names).map_err(|f| match f {
+                    Flow::Err(e) => e,
+                    _ => Box::new(error::RtError {
+                        kind: error::SYNTAX_ERROR,
+                        message: "invalid break/next".into(),
+                        line: None,
+                        filename: None,
+                    }),
+                })
+            });
         handle.ok().map(|h| h.join())
     });
     match result {
@@ -157,7 +167,10 @@ impl Template {
         let ctx = Rc::new(Ctx::new(base_dir, opts.max_steps));
         let mut names: Vec<(&String, &Value)> = vars.iter().collect();
         names.sort_by(|a, b| a.0.cmp(b.0));
-        let vars: Vec<(Arc<str>, Value)> = names.into_iter().map(|(k, v)| (Arc::from(k.as_str()), v.clone())).collect();
+        let vars: Vec<(Arc<str>, Value)> = names
+            .into_iter()
+            .map(|(k, v)| (Arc::from(k.as_str()), v.clone()))
+            .collect();
         let host_names: Vec<String> = vars.iter().map(|(k, _)| k.to_string()).collect();
         let program = self.program_for(&host_names)?;
         let _guard = stack::enter();

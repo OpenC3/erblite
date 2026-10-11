@@ -1,3 +1,11 @@
+# Copyright 2026 OpenC3, Inc.
+# All Rights Reserved.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See LICENSE.md for more details.
+
 """Recursive-descent parser producing the AST in :mod:`erblite.nodes`.
 
 Local variable scoping is resolved here, the same way Ruby does it: a name is a local

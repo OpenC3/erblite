@@ -1,9 +1,17 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! Recursive-descent parser: tokens -> AST, with Ruby-style local variable scoping.
 
-use std::sync::Arc;
 use crate::ast::{Arg, BlockNode, Kind, Node, Param, Target, VarRef};
 use crate::error::{Flow, RtError, LIMIT_ERROR};
 use crate::lexer::{syntax_error, StrPart, Tok, Token};
+use std::sync::Arc;
 
 /// Deepest allowed syntactic nesting (each nested expression or block counts).
 const MAX_PARSE_DEPTH: u32 = 2000;
@@ -61,7 +69,9 @@ fn is_binop(t: &Tok) -> Option<(&'static str, u8)> {
     Some((o, prec))
 }
 
-const OP_ASSIGN: &[&str] = &["+=", "-=", "*=", "/=", "%=", "**=", "||=", "&&=", "<<=", ">>=", "|=", "&=", "^="];
+const OP_ASSIGN: &[&str] = &[
+    "+=", "-=", "*=", "/=", "%=", "**=", "||=", "&&=", "<<=", ">>=", "|=", "&=", "^=",
+];
 
 impl Parser {
     fn peek(&self) -> &Token {
@@ -265,7 +275,10 @@ impl Parser {
                     return Err(self.unexpected());
                 }
                 self.advance();
-                return Ok(Node::new(Kind::Output(Box::new(Node::new(Kind::Seq(body), line))), line));
+                return Ok(Node::new(
+                    Kind::Output(Box::new(Node::new(Kind::Seq(body), line))),
+                    line,
+                ));
             }
             _ => {}
         }
@@ -290,7 +303,14 @@ impl Parser {
             node = match kw {
                 "if" => Node::new(Kind::If(Box::new(cond), vec![node], vec![]), line),
                 "unless" => Node::new(Kind::If(Box::new(cond), vec![], vec![node]), line),
-                _ => Node::new(Kind::While { cond: Box::new(cond), body: vec![node], until: kw == "until" }, line),
+                _ => Node::new(
+                    Kind::While {
+                        cond: Box::new(cond),
+                        body: vec![node],
+                        until: kw == "until",
+                    },
+                    line,
+                ),
             };
         };
         self.depth -= chain;
@@ -300,8 +320,14 @@ impl Parser {
     fn can_start_value(&self) -> bool {
         match &self.peek().tok {
             Tok::Newline | Tok::Eof | Tok::OutEnd | Tok::Text(_) | Tok::OutStart => false,
-            Tok::Op(o) => !matches!(*o, ";" | "}" | ")" | "]" | "," | "=>" | "?" | ":" | "|" | "||" | "&&" | "."),
-            Tok::Kw(k) => matches!(*k, "nil" | "true" | "false" | "if" | "unless" | "while" | "until" | "case" | "for" | "not"),
+            Tok::Op(o) => !matches!(
+                *o,
+                ";" | "}" | ")" | "]" | "," | "=>" | "?" | ":" | "|" | "||" | "&&" | "."
+            ),
+            Tok::Kw(k) => matches!(
+                *k,
+                "nil" | "true" | "false" | "if" | "unless" | "while" | "until" | "case" | "for" | "not"
+            ),
             _ => true,
         }
     }
@@ -337,14 +363,20 @@ impl Parser {
         }
         // `a = 1, 2` assigns an Array
         match node {
-            Node { kind: Kind::Assign(var, first), line } => {
+            Node {
+                kind: Kind::Assign(var, first),
+                line,
+            } => {
                 let mut items = vec![*first];
                 while self.is_op(",") {
                     self.advance();
                     self.skip_newlines();
                     items.push(self.parse_assign()?);
                 }
-                Ok(Node::new(Kind::Assign(var, Box::new(Node::new(Kind::Array(items), line))), line))
+                Ok(Node::new(
+                    Kind::Assign(var, Box::new(Node::new(Kind::Array(items), line))),
+                    line,
+                ))
             }
             other => Ok(other),
         }
@@ -448,12 +480,24 @@ impl Parser {
             let w = if is_break { "break" } else { "next" };
             return Err(syntax_error(format!("Invalid {}", w), line));
         }
-        let value = if self.can_start_value() && !self.is_kw("if") && !self.is_kw("unless") && !self.is_kw("while") && !self.is_kw("until") {
+        let value = if self.can_start_value()
+            && !self.is_kw("if")
+            && !self.is_kw("unless")
+            && !self.is_kw("while")
+            && !self.is_kw("until")
+        {
             Some(Box::new(self.parse_assign()?))
         } else {
             None
         };
-        Ok(Node::new(if is_break { Kind::Break(value) } else { Kind::Next(value) }, line))
+        Ok(Node::new(
+            if is_break {
+                Kind::Break(value)
+            } else {
+                Kind::Next(value)
+            },
+            line,
+        ))
     }
 
     #[inline(never)]
@@ -479,7 +523,10 @@ impl Parser {
                     let var = self.declare(&name);
                     let rhs = self.parse_assign_rhs()?;
                     let bin = &op[..op.len() - 1];
-                    return Ok(Node::new(Kind::OpAssign(Target::Var(var), Arc::from(bin), Box::new(rhs)), line));
+                    return Ok(Node::new(
+                        Kind::OpAssign(Target::Var(var), Arc::from(bin), Box::new(rhs)),
+                        line,
+                    ));
                 }
             }
         }
@@ -501,14 +548,29 @@ impl Parser {
         let rhs = self.parse_assign_rhs()?;
         let Node { kind, line: lline } = lhs;
         let target = match kind {
-            Kind::Call { recv, name, args, block: None, safe: false } if &*name == "[]" => Target::Index(recv, args),
-            Kind::Call { recv, name, args, block: None, safe: false }
-                if args.is_empty() && name.chars().next().is_some_and(|c| c.is_ascii_lowercase() || c == '_') =>
-            {
+            Kind::Call {
+                recv,
+                name,
+                args,
+                block: None,
+                safe: false,
+            } if &*name == "[]" => Target::Index(recv, args),
+            Kind::Call {
+                recv,
+                name,
+                args,
+                block: None,
+                safe: false,
+            } if args.is_empty() && name.chars().next().is_some_and(|c| c.is_ascii_lowercase() || c == '_') => {
                 Target::Attr(recv, name)
             }
             Kind::Var(v) => Target::Var(v),
-            Kind::IdentCall { name, has_args: false, block: None, .. } => Target::Var(self.declare(&name)),
+            Kind::IdentCall {
+                name,
+                has_args: false,
+                block: None,
+                ..
+            } => Target::Var(self.declare(&name)),
             _ => return Err(syntax_error("unexpected '=': invalid assignment target", op_line)),
         };
         if op == "=" {
@@ -519,13 +581,20 @@ impl Parser {
             });
         }
         let bin = &op[..op.len() - 1];
-        Ok(Node::new(Kind::OpAssign(target, Arc::from(bin), Box::new(rhs)), op_line))
+        Ok(Node::new(
+            Kind::OpAssign(target, Arc::from(bin), Box::new(rhs)),
+            op_line,
+        ))
     }
 
     #[inline(never)]
     fn parse_assign_rhs(&mut self) -> PR<Node> {
         self.enter()?;
-        let r = if self.is_kw("not") { self.parse_not_expr() } else { self.parse_assign() };
+        let r = if self.is_kw("not") {
+            self.parse_not_expr()
+        } else {
+            self.parse_assign()
+        };
         self.leave();
         r
     }
@@ -546,7 +615,15 @@ impl Parser {
                 self.advance();
                 match self.lookup(&name) {
                     Some(v) => Node::new(Kind::Var(v), l),
-                    None => Node::new(Kind::IdentCall { name: Arc::from(name), args: vec![], has_args: false, block: None }, l),
+                    None => Node::new(
+                        Kind::IdentCall {
+                            name: Arc::from(name),
+                            args: vec![],
+                            has_args: false,
+                            block: None,
+                        },
+                        l,
+                    ),
                 }
             }
             Tok::StrLabel(s) => {
@@ -585,7 +662,10 @@ impl Parser {
         match &self.peek().tok {
             Tok::Newline | Tok::Eof | Tok::OutEnd | Tok::Text(_) | Tok::OutStart => false,
             Tok::Op(o) => matches!(*o, "(" | "[" | "-" | "!" | "~" | "{" | "::"),
-            Tok::Kw(k) => matches!(*k, "nil" | "true" | "false" | "if" | "unless" | "case" | "while" | "until" | "for"),
+            Tok::Kw(k) => matches!(
+                *k,
+                "nil" | "true" | "false" | "if" | "unless" | "case" | "while" | "until" | "for"
+            ),
             Tok::Label(_) | Tok::StrLabel(_) => false,
             _ => true,
         }
@@ -602,7 +682,11 @@ impl Parser {
         if self.is_op("..") || self.is_op("...") {
             let excl = self.is_op("...");
             self.advance();
-            let rhs = if self.operand_follows() { Some(Box::new(self.parse_binary(1)?)) } else { None };
+            let rhs = if self.operand_follows() {
+                Some(Box::new(self.parse_binary(1)?))
+            } else {
+                None
+            };
             if lhs.is_none() && rhs.is_none() {
                 return Err(self.unexpected());
             }
@@ -718,7 +802,11 @@ impl Parser {
         let inner = self.parse_unary();
         self.leave();
         let inner = inner?;
-        Ok(if op == "!" { Node::new(Kind::Not(Box::new(inner)), line) } else { call(inner, name, vec![], line) })
+        Ok(if op == "!" {
+            Node::new(Kind::Not(Box::new(inner)), line)
+        } else {
+            call(inner, name, vec![], line)
+        })
     }
 
     #[inline(never)]
@@ -775,7 +863,13 @@ impl Parser {
                     let _ = has_args;
                     let block = self.parse_block_opt(cmd)?;
                     node = Node::new(
-                        Kind::Call { recv: Box::new(node), name: Arc::from(name), args, block, safe },
+                        Kind::Call {
+                            recv: Box::new(node),
+                            name: Arc::from(name),
+                            args,
+                            block,
+                            safe,
+                        },
                         line,
                     );
                     if cmd {
@@ -790,7 +884,13 @@ impl Parser {
                             if self.is_op("(") && !self.peek().space_before {
                                 let (args, _, _) = self.parse_call_args()?;
                                 node = Node::new(
-                                    Kind::Call { recv: Box::new(node), name: Arc::from(n), args, block: None, safe: false },
+                                    Kind::Call {
+                                        recv: Box::new(node),
+                                        name: Arc::from(n),
+                                        args,
+                                        block: None,
+                                        safe: false,
+                                    },
                                     nt.line,
                                 );
                             } else {
@@ -801,7 +901,13 @@ impl Parser {
                             let (args, _, cmd) = self.parse_call_args()?;
                             let block = self.parse_block_opt(cmd)?;
                             node = Node::new(
-                                Kind::Call { recv: Box::new(node), name: Arc::from(n), args, block, safe: false },
+                                Kind::Call {
+                                    recv: Box::new(node),
+                                    name: Arc::from(n),
+                                    args,
+                                    block,
+                                    safe: false,
+                                },
                                 nt.line,
                             );
                         }
@@ -813,7 +919,13 @@ impl Parser {
                     self.advance();
                     let args = self.parse_arg_list("]")?;
                     node = Node::new(
-                        Kind::Call { recv: Box::new(node), name: Arc::from("[]"), args, block: None, safe: false },
+                        Kind::Call {
+                            recv: Box::new(node),
+                            name: Arc::from("[]"),
+                            args,
+                            block: None,
+                            safe: false,
+                        },
                         line,
                     );
                 }
@@ -954,7 +1066,11 @@ impl Parser {
     #[inline(never)]
     fn parse_arg_value(&mut self) -> PR<Node> {
         self.enter()?;
-        let r = if self.is_kw("not") { self.parse_not_expr() } else { self.parse_assign() };
+        let r = if self.is_kw("not") {
+            self.parse_not_expr()
+        } else {
+            self.parse_assign()
+        };
         self.leave();
         r
     }
@@ -1098,14 +1214,22 @@ impl Parser {
             Tok::Words(ws) => {
                 self.advance();
                 Ok(Node::new(
-                    Kind::Array(ws.into_iter().map(|w| Node::new(Kind::Str(Arc::from(w)), line)).collect()),
+                    Kind::Array(
+                        ws.into_iter()
+                            .map(|w| Node::new(Kind::Str(Arc::from(w)), line))
+                            .collect(),
+                    ),
                     line,
                 ))
             }
             Tok::Symbols(ws) => {
                 self.advance();
                 Ok(Node::new(
-                    Kind::Array(ws.into_iter().map(|w| Node::new(Kind::Sym(Arc::from(w)), line)).collect()),
+                    Kind::Array(
+                        ws.into_iter()
+                            .map(|w| Node::new(Kind::Sym(Arc::from(w)), line))
+                            .collect(),
+                    ),
                     line,
                 ))
             }
@@ -1143,58 +1267,65 @@ impl Parser {
         }
     }
 
-
     #[inline(never)]
     fn parse_array_literal(&mut self, line: u32) -> PR<Node> {
-            self.advance();
-            let args = self.parse_arg_list("]")?;
-            let mut items = Vec::new();
-            let mut pairs = Vec::new();
-            for a in args {
-                match a {
-                    Arg::Pos(n) => {
-                        if !pairs.is_empty() {
-                            items.push(Node::new(Kind::Hash(std::mem::take(&mut pairs)), line));
-                        }
-                        items.push(n)
+        self.advance();
+        let args = self.parse_arg_list("]")?;
+        let mut items = Vec::new();
+        let mut pairs = Vec::new();
+        for a in args {
+            match a {
+                Arg::Pos(n) => {
+                    if !pairs.is_empty() {
+                        items.push(Node::new(Kind::Hash(std::mem::take(&mut pairs)), line));
                     }
-                    Arg::Pair(k, v) => pairs.push((k, v)),
-                    Arg::BlockPass(_) => return Err(syntax_error("unexpected block argument", line)),
+                    items.push(n)
                 }
+                Arg::Pair(k, v) => pairs.push((k, v)),
+                Arg::BlockPass(_) => return Err(syntax_error("unexpected block argument", line)),
             }
-            if !pairs.is_empty() {
-                items.push(Node::new(Kind::Hash(pairs), line));
-            }
-            Ok(Node::new(Kind::Array(items), line))
         }
+        if !pairs.is_empty() {
+            items.push(Node::new(Kind::Hash(pairs), line));
+        }
+        Ok(Node::new(Kind::Array(items), line))
+    }
 
     #[inline(never)]
     fn parse_paren(&mut self, line: u32) -> PR<Node> {
-            self.advance();
-            let saved = (self.no_do, self.no_cmd);
-            self.no_do = false;
-            self.no_cmd = false;
-            let body = self.parse_statements(&|t| matches!(t, Tok::Op(")")));
-            (self.no_do, self.no_cmd) = saved;
-            let body = body?;
-            self.expect_op(")")?;
-            Ok(match body.len() {
-                0 => Node::new(Kind::Nil, line),
-                _ => Node::new(Kind::Seq(body), line),
-            })
-        }
+        self.advance();
+        let saved = (self.no_do, self.no_cmd);
+        self.no_do = false;
+        self.no_cmd = false;
+        let body = self.parse_statements(&|t| matches!(t, Tok::Op(")")));
+        (self.no_do, self.no_cmd) = saved;
+        let body = body?;
+        self.expect_op(")")?;
+        Ok(match body.len() {
+            0 => Node::new(Kind::Nil, line),
+            _ => Node::new(Kind::Seq(body), line),
+        })
+    }
 
     #[inline(never)]
     fn parse_const(&mut self, name: String, line: u32) -> PR<Node> {
-            self.advance();
-            let n = self.peek();
-            if matches!(n.tok, Tok::Op("(")) && !n.space_before {
-                let (args, _, _) = self.parse_call_args()?;
-                let block = self.parse_block_opt(false)?;
-                return Ok(Node::new(Kind::IdentCall { name: Arc::from(name), args, has_args: true, block }, line));
-            }
-            Ok(Node::new(Kind::Const(Arc::from(name)), line))
+        self.advance();
+        let n = self.peek();
+        if matches!(n.tok, Tok::Op("(")) && !n.space_before {
+            let (args, _, _) = self.parse_call_args()?;
+            let block = self.parse_block_opt(false)?;
+            return Ok(Node::new(
+                Kind::IdentCall {
+                    name: Arc::from(name),
+                    args,
+                    has_args: true,
+                    block,
+                },
+                line,
+            ));
         }
+        Ok(Node::new(Kind::Const(Arc::from(name)), line))
+    }
 
     #[inline(never)]
     fn parse_identifier(&mut self, name: String, line: u32) -> PR<Node> {
@@ -1207,7 +1338,15 @@ impl Parser {
         }
         let (args, has_args, cmd) = self.parse_call_args()?;
         let block = self.parse_block_opt(cmd)?;
-        Ok(Node::new(Kind::IdentCall { name: Arc::from(name), args, has_args, block }, line))
+        Ok(Node::new(
+            Kind::IdentCall {
+                name: Arc::from(name),
+                args,
+                has_args,
+                block,
+            },
+            line,
+        ))
     }
 
     fn string_node(&mut self, parts: Vec<StrPart>, line: u32, sym: bool) -> PR<Node> {
@@ -1229,7 +1368,12 @@ impl Parser {
     #[inline(never)]
     fn parse_sub(&mut self, mut toks: Vec<Token>, line: u32) -> PR<Node> {
         let end_line = toks.last().map(|t| t.line).unwrap_or(line);
-        toks.push(Token { tok: Tok::Eof, line: end_line, space_before: true, neg_lit: false });
+        toks.push(Token {
+            tok: Tok::Eof,
+            line: end_line,
+            space_before: true,
+            neg_lit: false,
+        });
         let saved_toks = std::mem::replace(&mut self.toks, toks);
         let saved_pos = std::mem::replace(&mut self.pos, 0);
         let saved_flags = (self.no_do, self.no_cmd);
@@ -1237,7 +1381,11 @@ impl Parser {
         self.no_cmd = false;
         let r = self.parse_statements(&|t| matches!(t, Tok::Eof));
         let at_end = matches!(self.peek().tok, Tok::Eof);
-        let err = if r.is_ok() && !at_end { Some(self.unexpected()) } else { None };
+        let err = if r.is_ok() && !at_end {
+            Some(self.unexpected())
+        } else {
+            None
+        };
         self.toks = saved_toks;
         self.pos = saved_pos;
         (self.no_do, self.no_cmd) = saved_flags;
@@ -1376,7 +1524,14 @@ impl Parser {
         let r = (|| -> PR<Node> {
             let cond = self.parse_cond()?;
             let body = self.parse_loop_body()?;
-            Ok(Node::new(Kind::While { cond: Box::new(cond), body, until }, line))
+            Ok(Node::new(
+                Kind::While {
+                    cond: Box::new(cond),
+                    body,
+                    until,
+                },
+                line,
+            ))
         })();
         self.leave();
         r
@@ -1404,7 +1559,14 @@ impl Parser {
             self.expect_kw("in")?;
             let iter = self.parse_cond()?;
             let body = self.parse_loop_body()?;
-            Ok(Node::new(Kind::For { vars, iter: Box::new(iter), body }, line))
+            Ok(Node::new(
+                Kind::For {
+                    vars,
+                    iter: Box::new(iter),
+                    body,
+                },
+                line,
+            ))
         })();
         self.leave();
         r

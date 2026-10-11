@@ -1,8 +1,16 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! Range methods (§8.10).
 
 use super::numeric::{float_step, int_overflow};
 use super::{argc, block_or_enum, check_array_len, enumerable, object, to_int};
-use crate::error::{fail, R, ARGUMENT_ERROR, RANGE_ERROR, TYPE_ERROR};
+use crate::error::{fail, ARGUMENT_ERROR, R, RANGE_ERROR, TYPE_ERROR};
 use crate::interp::{BlockArg, Interp};
 use crate::value::{RangeVal, Value};
 use std::cmp::Ordering;
@@ -154,7 +162,9 @@ fn first_n(r: &RangeVal, n: i64) -> R<Vec<Value>> {
 }
 
 pub fn call(it: &mut Interp, recv: &Value, name: &str, args: Vec<Value>, blk: Option<&BlockArg>) -> R<Value> {
-    let Value::Range(r) = recv else { return object::call(it, recv, name, args, blk) };
+    let Value::Range(r) = recv else {
+        return object::call(it, recv, name, args, blk);
+    };
     match name {
         "begin" => {
             argc(&args, 0, 0)?;
@@ -204,7 +214,11 @@ pub fn call(it: &mut Interp, recv: &Value, name: &str, args: Vec<Value>, blk: Op
             if !is_min && r.end.is_nil() {
                 return fail(RANGE_ERROR, "cannot get the maximum of endless range");
             }
-            let c = if r.start.is_nil() || r.end.is_nil() { Some(Ordering::Less) } else { r.start.compare(&r.end) };
+            let c = if r.start.is_nil() || r.end.is_nil() {
+                Some(Ordering::Less)
+            } else {
+                r.start.compare(&r.end)
+            };
             let Some(c) = c else {
                 return Err(super::numeric::comparison_failed(&r.start, &r.end));
             };
@@ -228,19 +242,17 @@ pub fn call(it: &mut Interp, recv: &Value, name: &str, args: Vec<Value>, blk: Op
             }
             Ok(r.end.clone())
         }
-        "size" | "count" if args.is_empty() && blk.is_none() => {
-            match &r.start {
-                Value::Int(lo) => {
-                    let hi = int_end(&r.end, r.excl)?;
-                    Ok(match int_size(*lo, hi) {
-                        Some(n) => Value::Int(n),
-                        None => Value::Float(f64::INFINITY),
-                    })
-                }
-                Value::Nil if name == "count" => Ok(Value::Float(f64::INFINITY)),
-                other => fail(TYPE_ERROR, format!("can't iterate from {}", other.class_name())),
+        "size" | "count" if args.is_empty() && blk.is_none() => match &r.start {
+            Value::Int(lo) => {
+                let hi = int_end(&r.end, r.excl)?;
+                Ok(match int_size(*lo, hi) {
+                    Some(n) => Value::Int(n),
+                    None => Value::Float(f64::INFINITY),
+                })
             }
-        }
+            Value::Nil if name == "count" => Ok(Value::Float(f64::INFINITY)),
+            other => fail(TYPE_ERROR, format!("can't iterate from {}", other.class_name())),
+        },
         "sum" if blk.is_none() && args.is_empty() => {
             if let (Value::Int(lo), Value::Int(_)) = (&r.start, &r.end) {
                 let hi = int_end(&r.end, r.excl)?.unwrap_or(*lo - 1);
@@ -297,7 +309,11 @@ pub fn call(it: &mut Interp, recv: &Value, name: &str, args: Vec<Value>, blk: Op
                     let mut i = *lo;
                     loop {
                         if let Some(e) = end {
-                            let past = if *st > 0 { i > e || (r.excl && i == e) } else { i < e || (r.excl && i == e) };
+                            let past = if *st > 0 {
+                                i > e || (r.excl && i == e)
+                            } else {
+                                i < e || (r.excl && i == e)
+                            };
                             if past {
                                 break;
                             }
@@ -319,7 +335,15 @@ pub fn call(it: &mut Interp, recv: &Value, name: &str, args: Vec<Value>, blk: Op
                     if unit == 0.0 {
                         return fail(ARGUMENT_ERROR, "step can't be 0");
                     }
-                    let end = if r.end.is_nil() { if unit < 0.0 { f64::NEG_INFINITY } else { f64::INFINITY } } else { f(&r.end) };
+                    let end = if r.end.is_nil() {
+                        if unit < 0.0 {
+                            f64::NEG_INFINITY
+                        } else {
+                            f64::INFINITY
+                        }
+                    } else {
+                        f(&r.end)
+                    };
                     float_step(it, b, f(&r.start), end, unit, r.excl)?;
                 }
                 (s, _) => return fail(TYPE_ERROR, format!("can't iterate from {}", s.class_name())),
@@ -329,8 +353,12 @@ pub fn call(it: &mut Interp, recv: &Value, name: &str, args: Vec<Value>, blk: Op
         "include?" | "member?" if matches!((&r.start, &r.end), (Value::Str(_), Value::Str(_))) => {
             argc(&args, 1, 1)?;
             // Ruby iterates string ranges with String#succ, except for one-character ends.
-            let (Value::Str(b), Value::Str(e)) = (&r.start, &r.end) else { return Ok(Value::Bool(false)) };
-            let Value::Str(v) = &args[0] else { return Ok(Value::Bool(false)) };
+            let (Value::Str(b), Value::Str(e)) = (&r.start, &r.end) else {
+                return Ok(Value::Bool(false));
+            };
+            let Value::Str(v) = &args[0] else {
+                return Ok(Value::Bool(false));
+            };
             if b.len() == 1 && e.len() == 1 && b.is_ascii() && e.is_ascii() {
                 if v.len() != 1 {
                     return Ok(Value::Bool(false));

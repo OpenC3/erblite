@@ -1,3 +1,11 @@
+# Copyright 2026 OpenC3, Inc.
+# All Rights Reserved.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See LICENSE.md for more details.
+
 - n: integers
   t: "<%= format('%d|%5d|%-5d|%05d|%+d|% d|%x|%X|%#x|%o|%#o|%b|%#b|%08b|%i|%u', 42, 42, 42, 42, 42, 42, 255, 255, 255, 8, 8, 5, 5, 5, 7, 9) %>"
 - n: negative_ints

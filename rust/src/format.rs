@@ -1,7 +1,15 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! Number formatting: `Float#to_s` and `format`/`sprintf`.
 
 use crate::builtins::conv::{str_to_float_strict, str_to_int_strict};
-use crate::error::{fail, R, ARGUMENT_ERROR, FLOAT_DOMAIN_ERROR, KEY_ERROR, LIMIT_ERROR, RANGE_ERROR, TYPE_ERROR};
+use crate::error::{fail, ARGUMENT_ERROR, FLOAT_DOMAIN_ERROR, KEY_ERROR, LIMIT_ERROR, R, RANGE_ERROR, TYPE_ERROR};
 use crate::value::Value;
 
 /// 2**63 as a float.
@@ -45,7 +53,11 @@ pub fn float_to_s(f: f64) -> String {
         return if f > 0.0 { "Infinity".into() } else { "-Infinity".into() };
     }
     if f == 0.0 {
-        return if f.is_sign_negative() { "-0.0".into() } else { "0.0".into() };
+        return if f.is_sign_negative() {
+            "-0.0".into()
+        } else {
+            "0.0".into()
+        };
     }
     let (d, e) = shortest_digits(f);
     let n = d.len() as i32;
@@ -223,7 +235,10 @@ fn format_int(v: i64, conv: char, spec: &Spec) -> R<String> {
     if negative && !matches!(conv, 'd' | 'i' | 'u') && !spec.plus && !spec.space {
         return fail(
             ARGUMENT_ERROR,
-            format!("negative argument for %{} requires the '+' or ' ' flag in ERBLite", conv),
+            format!(
+                "negative argument for %{} requires the '+' or ' ' flag in ERBLite",
+                conv
+            ),
         );
     }
     let mag = (v as i128).unsigned_abs();
@@ -264,8 +279,8 @@ fn format_int(v: i64, conv: char, spec: &Spec) -> R<String> {
 // produces.
 
 const TENS: [f64; 23] = [
-    1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19,
-    1e20, 1e21, 1e22,
+    1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19, 1e20,
+    1e21, 1e22,
 ];
 const BIGTENS: [f64; 5] = [1e16, 1e32, 1e64, 1e128, 1e256];
 const QUICK_MAX: i32 = 14;
@@ -472,7 +487,12 @@ fn fixed_from_digits(digits: &[u8], decpt: i32, decimals: usize, alt: bool) -> S
 }
 
 fn exp_suffix(e: i32, upper: bool) -> String {
-    format!("{}{}{:02}", if upper { 'E' } else { 'e' }, if e < 0 { '-' } else { '+' }, e.abs())
+    format!(
+        "{}{}{:02}",
+        if upper { 'E' } else { 'e' },
+        if e < 0 { '-' } else { '+' },
+        e.abs()
+    )
 }
 
 /// `%e` body: `prec` digits after the point.
@@ -485,7 +505,11 @@ fn exp_from_digits(digits: &[u8], decpt: i32, prec: usize, alt: bool, upper: boo
     for p in 1..=prec as i32 {
         out.push(digit_at(digits, p));
     }
-    let e = if digits.is_empty() || digits == b"0" { 0 } else { decpt - 1 };
+    let e = if digits.is_empty() || digits == b"0" {
+        0
+    } else {
+        decpt - 1
+    };
     out.push_str(&exp_suffix(e, upper));
     out
 }
@@ -512,7 +536,11 @@ fn format_float(f: f64, conv: char, spec: &Spec) -> String {
             let (digits, decpt) = ruby_dtoa(a, 2, p as i32);
             let expt = if a == 0.0 { 1 } else { decpt };
             if expt <= -4 || expt > p as i32 {
-                let shown = if spec.alt { p - 1 } else { digits.len().saturating_sub(1) };
+                let shown = if spec.alt {
+                    p - 1
+                } else {
+                    digits.len().saturating_sub(1)
+                };
                 exp_from_digits(&digits, expt, shown, spec.alt, conv == 'G')
             } else {
                 let decimals = if spec.alt {

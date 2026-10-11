@@ -1,9 +1,17 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! Hash methods (§8.9). Hashes keep insertion order and use `eql?` keys.
 
 use super::array::dig;
 use super::enumerable::{self, pairs_to_hash};
 use super::{argc, block_or_enum, object};
-use crate::error::{fail, R, KEY_ERROR, TYPE_ERROR};
+use crate::error::{fail, KEY_ERROR, R, TYPE_ERROR};
 use crate::interp::{BlockArg, Interp};
 use crate::value::{HashCell, RHash, Value};
 use std::rc::Rc;
@@ -15,7 +23,10 @@ fn pair(k: &Value, v: &Value) -> Value {
 fn to_hash(v: &Value) -> R<RHash> {
     match v {
         Value::Hash(h) => Ok(h.borrow().clone()),
-        other => fail(TYPE_ERROR, format!("no implicit conversion of {} into Hash", other.type_desc())),
+        other => fail(
+            TYPE_ERROR,
+            format!("no implicit conversion of {} into Hash", other.type_desc()),
+        ),
     }
 }
 
@@ -37,11 +48,25 @@ fn merge_into(it: &mut Interp, target: &mut RHash, others: &[Value], blk: Option
 }
 
 pub fn call(it: &mut Interp, recv: &Value, name: &str, args: Vec<Value>, blk: Option<&BlockArg>) -> R<Value> {
-    let Value::Hash(h) = recv else { return object::call(it, recv, name, args, blk) };
+    let Value::Hash(h) = recv else {
+        return object::call(it, recv, name, args, blk);
+    };
     let h: &Rc<HashCell> = h;
-    const MUTATORS: &[&str] = &["[]=", "store", "delete", "delete_if", "clear", "merge!", "update", "default="];
+    const MUTATORS: &[&str] = &[
+        "[]=",
+        "store",
+        "delete",
+        "delete_if",
+        "clear",
+        "merge!",
+        "update",
+        "default=",
+    ];
     if h.frozen.get() && MUTATORS.contains(&name) {
-        return fail(crate::error::FROZEN_ERROR, format!("can't modify frozen Hash: {}", recv.inspect()?));
+        return fail(
+            crate::error::FROZEN_ERROR,
+            format!("can't modify frozen Hash: {}", recv.inspect()?),
+        );
     }
     let pairs = || h.borrow().pairs();
     match name {
@@ -79,7 +104,11 @@ pub fn call(it: &mut Interp, recv: &Value, name: &str, args: Vec<Value>, blk: Op
         }
         "key" => {
             argc(&args, 1, 1)?;
-            Ok(h.borrow().iter().find(|(_, v)| v.equals(&args[0])).map(|(k, _)| k.clone()).unwrap_or(Value::Nil))
+            Ok(h.borrow()
+                .iter()
+                .find(|(_, v)| v.equals(&args[0]))
+                .map(|(k, _)| k.clone())
+                .unwrap_or(Value::Nil))
         }
         "keys" => {
             argc(&args, 0, 0)?;
@@ -91,7 +120,11 @@ pub fn call(it: &mut Interp, recv: &Value, name: &str, args: Vec<Value>, blk: Op
         }
         "values_at" => {
             let hb = h.borrow();
-            Ok(Value::array(args.iter().map(|k| hb.get(k).unwrap_or_else(|| hb.default.clone())).collect()))
+            Ok(Value::array(
+                args.iter()
+                    .map(|k| hb.get(k).unwrap_or_else(|| hb.default.clone()))
+                    .collect(),
+            ))
         }
         "fetch_values" => {
             let mut out = Vec::new();
@@ -256,7 +289,9 @@ pub fn call(it: &mut Interp, recv: &Value, name: &str, args: Vec<Value>, blk: Op
         }
         "compact" => {
             argc(&args, 0, 0)?;
-            Ok(Value::hash_from(pairs().into_iter().filter(|(_, v)| !v.is_nil()).collect()))
+            Ok(Value::hash_from(
+                pairs().into_iter().filter(|(_, v)| !v.is_nil()).collect(),
+            ))
         }
         "default" => {
             argc(&args, 0, 1)?;

@@ -1,3 +1,11 @@
+# Copyright 2026 OpenC3, Inc.
+# All Rights Reserved.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See LICENSE.md for more details.
+
 # frozen_string_literal: true
 
 module ERBLite
@@ -190,7 +198,7 @@ module ERBLite
       else
         case type
         when "s" then Kernel.format("#{spec}s", Builtins.to_s(v))
-        when "p" then Kernel.format("#{spec}s", v.inspect)
+        when "p" then Kernel.format("#{spec}s", Builtins.inspect(v))
         else
           case v
           when Integer, Float then Kernel.format("#{spec}c", int_arg(v))

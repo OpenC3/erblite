@@ -1,3 +1,11 @@
+# Copyright 2026 OpenC3, Inc.
+# All Rights Reserved.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See LICENSE.md for more details.
+
 - n: access
   t: "<% h = {'a' => 1, b: 2, 3 => 'c'} %><%= h['a'] %>,<%= h[:b] %>,<%= h[3] %>,<%= h['b'].inspect %>,<%= h.fetch('a') %>,<%= h.fetch('z', 0) %>,<%= h.fetch('z') { |k| k * 2 } %>,<%= h.dig(:b) %>"
 - n: fetch_missing

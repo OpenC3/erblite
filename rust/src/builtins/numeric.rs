@@ -1,7 +1,15 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! Integer (§8.3) and Float (§8.4) methods.
 
 use super::{argc, block_or_enum, object, to_int};
-use crate::error::{fail, rt_err, Flow, R, ARGUMENT_ERROR, MATH_DOMAIN_ERROR, RANGE_ERROR, TYPE_ERROR, ZERO_DIV_ERROR};
+use crate::error::{fail, rt_err, Flow, ARGUMENT_ERROR, MATH_DOMAIN_ERROR, R, RANGE_ERROR, TYPE_ERROR, ZERO_DIV_ERROR};
 use crate::format::{float_to_int, float_to_s};
 use crate::interp::{BlockArg, Interp};
 use crate::value::Value;
@@ -12,7 +20,10 @@ pub fn int_overflow<T>() -> R<T> {
 }
 
 fn coerce_err(other: &Value, into: &str) -> Flow {
-    rt_err(TYPE_ERROR, format!("{} can't be coerced into {}", other.type_desc(), into))
+    rt_err(
+        TYPE_ERROR,
+        format!("{} can't be coerced into {}", other.type_desc(), into),
+    )
 }
 
 /// `comparison of X with Y failed`.
@@ -22,7 +33,10 @@ pub fn comparison_failed(a: &Value, b: &Value) -> Flow {
         Value::Int(_) | Value::Float(_) => b.inspect().unwrap_or_default(),
         _ => b.class_name().to_string(),
     };
-    rt_err(ARGUMENT_ERROR, format!("comparison of {} with {} failed", a.class_name(), bd))
+    rt_err(
+        ARGUMENT_ERROR,
+        format!("comparison of {} with {} failed", a.class_name(), bd),
+    )
 }
 
 /// Compares two values for `<`, `sort`, `min`, ...; raises when incomparable.
@@ -34,7 +48,9 @@ pub fn floor_div(a: i64, b: i64) -> R<i64> {
     if b == 0 {
         return fail(ZERO_DIV_ERROR, "divided by 0");
     }
-    let Some(q) = a.checked_div(b) else { return int_overflow() };
+    let Some(q) = a.checked_div(b) else {
+        return int_overflow();
+    };
     if (a % b != 0) && ((a < 0) != (b < 0)) {
         Ok(q - 1)
     } else {
@@ -62,8 +78,16 @@ fn flo_divmod(x: f64, y: f64) -> R<(f64, f64)> {
     if y == 0.0 {
         return fail(ZERO_DIV_ERROR, "divided by 0");
     }
-    let mut m = if x == 0.0 || (y.is_infinite() && !x.is_infinite()) { x } else { x % y };
-    let mut d = if x.is_infinite() && !y.is_infinite() { x } else { ((x - m) / y).round() };
+    let mut m = if x == 0.0 || (y.is_infinite() && !x.is_infinite()) {
+        x
+    } else {
+        x % y
+    };
+    let mut d = if x.is_infinite() && !y.is_infinite() {
+        x
+    } else {
+        ((x - m) / y).round()
+    };
     if y * m < 0.0 {
         m += y;
         d -= 1.0;
@@ -86,7 +110,10 @@ fn to_f(v: &Value, into: &str) -> R<f64> {
 
 fn float_pow(a: f64, e: f64) -> R<Value> {
     if a < 0.0 && e.is_finite() && e.fract() != 0.0 {
-        return fail(RANGE_ERROR, "negative number to a fractional power gives a Complex result (not supported)");
+        return fail(
+            RANGE_ERROR,
+            "negative number to a fractional power gives a Complex result (not supported)",
+        );
     }
     Ok(Value::Float(a.powf(e)))
 }
@@ -279,7 +306,11 @@ pub fn float_step_size(beg: f64, end: f64, unit: f64, excl: bool) -> f64 {
         return f64::INFINITY;
     }
     if unit.is_infinite() {
-        return if unit > 0.0 { (beg <= end) as i32 as f64 } else { (beg >= end) as i32 as f64 };
+        return if unit > 0.0 {
+            (beg <= end) as i32 as f64
+        } else {
+            (beg >= end) as i32 as f64
+        };
     }
     let n = (end - beg) / unit;
     let err = ((beg.abs() + end.abs() + (end - beg).abs()) / unit.abs() * f64::EPSILON).min(0.5);
@@ -340,7 +371,10 @@ pub fn between(recv: &Value, args: &[Value]) -> R<Value> {
 pub fn clamp(recv: &Value, args: &[Value]) -> R<Value> {
     argc(args, 2, 2)?;
     if compare_or_fail(&args[0], &args[1])? == Ordering::Greater {
-        return fail(ARGUMENT_ERROR, "min argument must be less than or equal to max argument");
+        return fail(
+            ARGUMENT_ERROR,
+            "min argument must be less than or equal to max argument",
+        );
     }
     if compare_or_fail(recv, &args[0])? == Ordering::Less {
         return Ok(args[0].clone());
@@ -368,7 +402,14 @@ fn cmp_op(recv: &Value, name: &str, args: &[Value]) -> R<Value> {
     }))
 }
 
-pub fn call_int(it: &mut Interp, i: i64, recv: &Value, name: &str, args: Vec<Value>, blk: Option<&BlockArg>) -> R<Value> {
+pub fn call_int(
+    it: &mut Interp,
+    i: i64,
+    recv: &Value,
+    name: &str,
+    args: Vec<Value>,
+    blk: Option<&BlockArg>,
+) -> R<Value> {
     match name {
         "+" | "-" | "*" => {
             argc(&args, 1, 1)?;
@@ -558,7 +599,10 @@ pub fn call_int(it: &mut Interp, i: i64, recv: &Value, name: &str, args: Vec<Val
         "divmod" => {
             argc(&args, 1, 1)?;
             match &args[0] {
-                Value::Int(j) => Ok(Value::array(vec![Value::Int(floor_div(i, *j)?), Value::Int(floor_mod(i, *j)?)])),
+                Value::Int(j) => Ok(Value::array(vec![
+                    Value::Int(floor_div(i, *j)?),
+                    Value::Int(floor_mod(i, *j)?),
+                ])),
                 Value::Float(f) => {
                     let (d, m) = flo_divmod(i as f64, *f)?;
                     Ok(Value::array(vec![Value::Int(float_to_int(d)?), Value::Float(m)]))
@@ -616,7 +660,11 @@ pub fn call_int(it: &mut Interp, i: i64, recv: &Value, name: &str, args: Vec<Val
         }
         "bit_length" => {
             argc(&args, 0, 0)?;
-            Ok(Value::Int(if i >= 0 { 64 - i.leading_zeros() as i64 } else { 64 - i.leading_ones() as i64 }))
+            Ok(Value::Int(if i >= 0 {
+                64 - i.leading_zeros() as i64
+            } else {
+                64 - i.leading_ones() as i64
+            }))
         }
         "floor" | "ceil" | "truncate" | "round" => {
             let nd = ndigits_arg(&args)?;
@@ -634,7 +682,8 @@ pub fn call_int(it: &mut Interp, i: i64, recv: &Value, name: &str, args: Vec<Val
 
 /// `Numeric#step(limit, step)`.
 fn num_step(it: &mut Interp, b: &BlockArg, recv: &Value, limit: &Value, step: &Value) -> R<()> {
-    let any_float = matches!(recv, Value::Float(_)) || matches!(limit, Value::Float(_)) || matches!(step, Value::Float(_));
+    let any_float =
+        matches!(recv, Value::Float(_)) || matches!(limit, Value::Float(_)) || matches!(step, Value::Float(_));
     if any_float {
         let beg = to_f(recv, "Float")?;
         let end = match limit {
@@ -681,7 +730,14 @@ fn num_step(it: &mut Interp, b: &BlockArg, recv: &Value, limit: &Value, step: &V
     Ok(())
 }
 
-pub fn call_float(it: &mut Interp, f: f64, recv: &Value, name: &str, args: Vec<Value>, blk: Option<&BlockArg>) -> R<Value> {
+pub fn call_float(
+    it: &mut Interp,
+    f: f64,
+    recv: &Value,
+    name: &str,
+    args: Vec<Value>,
+    blk: Option<&BlockArg>,
+) -> R<Value> {
     match name {
         "+" | "-" | "*" | "/" => {
             argc(&args, 1, 1)?;
@@ -738,7 +794,11 @@ pub fn call_float(it: &mut Interp, f: f64, recv: &Value, name: &str, args: Vec<V
         }
         "infinite?" => {
             argc(&args, 0, 0)?;
-            Ok(if f.is_infinite() { Value::Int(if f > 0.0 { 1 } else { -1 }) } else { Value::Nil })
+            Ok(if f.is_infinite() {
+                Value::Int(if f > 0.0 { 1 } else { -1 })
+            } else {
+                Value::Nil
+            })
         }
         "zero?" | "positive?" | "negative?" => {
             argc(&args, 0, 0)?;

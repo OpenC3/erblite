@@ -1,3 +1,11 @@
+# Copyright 2026 OpenC3, Inc.
+# All Rights Reserved.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See LICENSE.md for more details.
+
 - n: if_elsif_else
   t: "<% [1, 2, 3].each do |x| %><% if x == 1 %>one<% elsif x == 2 %>two<% else %>many<% end %>,<% end %>"
 - n: unless_else

@@ -66,8 +66,25 @@ See [`examples/plugin.txt.erb`](examples/plugin.txt.erb) for a larger example th
   `ruby tools/difftest.rb --count 2000`.
 
 ```sh
-ruby conformance/generate.rb --check
+BUNDLE_GEMFILE=conformance/Gemfile bundle exec ruby conformance/generate.rb --check
 (cd python && .venv/bin/pytest)
 (cd ruby && bundle exec rake spec)
 (cd rust && cargo test)
 ```
+
+## Releasing
+
+All three packages share one version number. `tools/version.rb` keeps every
+version location in sync.
+
+```sh
+ruby tools/version.rb 0.2.0          # bump python, ruby and rust together
+git commit -am "Release 0.2.0"
+git tag v0.2.0 && git push origin main v0.2.0
+```
+
+Pushing a `vX.Y.Z` tag starts `.github/workflows/release.yml`. It checks that the
+tag matches the package versions, runs the full CI suite, and builds the packages.
+It then publishes to PyPI, RubyGems and crates.io using trusted publishing
+(the one-time registry setup is described at the top of the workflow) and
+creates a GitHub release with the built packages attached.

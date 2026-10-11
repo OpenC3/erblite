@@ -1,3 +1,11 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! Abstract syntax tree produced by the parser.
 
 use std::sync::Arc;
@@ -89,9 +97,21 @@ pub enum Kind {
     Or(Box<Node>, Box<Node>),
     Not(Box<Node>),
     If(Box<Node>, Vec<Node>, Vec<Node>),
-    While { cond: Box<Node>, body: Vec<Node>, until: bool },
-    For { vars: Vec<VarRef>, iter: Box<Node>, body: Vec<Node> },
-    Case { subject: Option<Box<Node>>, whens: Vec<(Vec<Node>, Vec<Node>)>, els: Option<Vec<Node>> },
+    While {
+        cond: Box<Node>,
+        body: Vec<Node>,
+        until: bool,
+    },
+    For {
+        vars: Vec<VarRef>,
+        iter: Box<Node>,
+        body: Vec<Node>,
+    },
+    Case {
+        subject: Option<Box<Node>>,
+        whens: Vec<(Vec<Node>, Vec<Node>)>,
+        els: Option<Vec<Node>>,
+    },
     Break(Option<Box<Node>>),
     Next(Option<Box<Node>>),
     Seq(Vec<Node>),

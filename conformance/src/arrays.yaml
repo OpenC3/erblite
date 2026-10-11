@@ -1,3 +1,11 @@
+# Copyright 2026 OpenC3, Inc.
+# All Rights Reserved.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See LICENSE.md for more details.
+
 - n: access
   t: "<% a = [1, 2, 3, 4, 5] %><%= a[0] %>,<%= a[-1] %>,<%= a[1, 2].inspect %>,<%= a[1..2].inspect %>,<%= a[1...-1].inspect %>,<%= a[9].inspect %>,<%= a[5, 1].inspect %>,<%= a[6, 1].inspect %>,<%= a.first %>,<%= a.first(2).inspect %>,<%= a.last(2).inspect %>,<%= a.dig(0) %>"
 - n: mutation

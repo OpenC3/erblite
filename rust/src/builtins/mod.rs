@@ -1,3 +1,11 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! Built-in methods. Every callable name is listed explicitly in the tables below; a name
 //! that is not in the table for the receiver's type raises `NoMethodError`.
 
@@ -13,10 +21,10 @@ pub mod object;
 pub mod range;
 pub mod string;
 
-use std::sync::Arc;
-use crate::error::{fail, R, ARGUMENT_ERROR, LIMIT_ERROR, NO_METHOD_ERROR, TYPE_ERROR};
+use crate::error::{fail, ARGUMENT_ERROR, LIMIT_ERROR, NO_METHOD_ERROR, R, TYPE_ERROR};
 use crate::interp::{BlockArg, Interp};
 use crate::value::{ClassId, Value};
+use std::sync::Arc;
 
 /// Largest string (in bytes) a single operation may build [ERBLite size cap].
 pub const MAX_STR_LEN: usize = 10_000_000;
@@ -24,8 +32,26 @@ pub const MAX_STR_LEN: usize = 10_000_000;
 pub const MAX_ARRAY_LEN: usize = 10_000_000;
 
 pub const OBJECT_METHODS: &[&str] = &[
-    "==", "!=", "!", "===", "eql?", "<=>", "nil?", "to_s", "inspect", "class", "is_a?", "kind_of?", "instance_of?",
-    "respond_to?", "dup", "freeze", "frozen?", "to_json", "then", "tap",
+    "==",
+    "!=",
+    "!",
+    "===",
+    "eql?",
+    "<=>",
+    "nil?",
+    "to_s",
+    "inspect",
+    "class",
+    "is_a?",
+    "kind_of?",
+    "instance_of?",
+    "respond_to?",
+    "dup",
+    "freeze",
+    "frozen?",
+    "to_json",
+    "then",
+    "tap",
 ];
 
 pub const NIL_METHODS: &[&str] = &["to_a", "to_i", "to_f", "to_h"];
@@ -33,61 +59,359 @@ pub const NIL_METHODS: &[&str] = &["to_a", "to_i", "to_f", "to_h"];
 pub const BOOL_METHODS: &[&str] = &["&", "|", "^"];
 
 pub const INTEGER_METHODS: &[&str] = &[
-    "+", "-", "*", "/", "%", "**", "-@", "~", "&", "|", "^", "<<", ">>", "<=>", "<", "<=", ">", ">=", "abs",
-    "succ", "next", "pred", "to_i", "to_f", "chr", "ord", "times", "upto", "downto", "step", "even?", "odd?",
-    "zero?", "positive?", "negative?", "between?", "clamp", "divmod", "fdiv", "gcd", "lcm", "digits",
-    "bit_length", "floor", "ceil", "truncate", "round",
+    "+",
+    "-",
+    "*",
+    "/",
+    "%",
+    "**",
+    "-@",
+    "~",
+    "&",
+    "|",
+    "^",
+    "<<",
+    ">>",
+    "<=>",
+    "<",
+    "<=",
+    ">",
+    ">=",
+    "abs",
+    "succ",
+    "next",
+    "pred",
+    "to_i",
+    "to_f",
+    "chr",
+    "ord",
+    "times",
+    "upto",
+    "downto",
+    "step",
+    "even?",
+    "odd?",
+    "zero?",
+    "positive?",
+    "negative?",
+    "between?",
+    "clamp",
+    "divmod",
+    "fdiv",
+    "gcd",
+    "lcm",
+    "digits",
+    "bit_length",
+    "floor",
+    "ceil",
+    "truncate",
+    "round",
 ];
 
 pub const FLOAT_METHODS: &[&str] = &[
-    "+", "-", "*", "/", "%", "**", "-@", "<=>", "<", "<=", ">", ">=", "abs", "to_f", "to_i", "truncate", "nan?",
-    "finite?", "infinite?", "zero?", "positive?", "negative?", "between?", "clamp", "divmod", "fdiv", "floor",
-    "ceil", "round",
+    "+",
+    "-",
+    "*",
+    "/",
+    "%",
+    "**",
+    "-@",
+    "<=>",
+    "<",
+    "<=",
+    ">",
+    ">=",
+    "abs",
+    "to_f",
+    "to_i",
+    "truncate",
+    "nan?",
+    "finite?",
+    "infinite?",
+    "zero?",
+    "positive?",
+    "negative?",
+    "between?",
+    "clamp",
+    "divmod",
+    "fdiv",
+    "floor",
+    "ceil",
+    "round",
 ];
 
 pub const STRING_METHODS: &[&str] = &[
-    "+", "*", "%", "<<", "<=>", "<", "<=", ">", ">=", "[]", "slice", "length", "size", "bytesize", "empty?",
-    "upcase", "downcase", "capitalize", "swapcase", "strip", "lstrip", "rstrip", "chomp", "chop", "chars",
-    "lines", "bytes", "reverse", "include?", "start_with?", "end_with?", "index", "rindex", "count", "sub",
-    "gsub", "tr", "delete", "squeeze", "center", "ljust", "rjust", "to_i", "to_f", "to_str", "to_sym", "ord",
-    "hex", "oct", "each_char", "each_line", "split", "partition", "rpartition", "casecmp", "casecmp?",
-    "between?", "ascii_only?",
+    "+",
+    "*",
+    "%",
+    "<<",
+    "<=>",
+    "<",
+    "<=",
+    ">",
+    ">=",
+    "[]",
+    "slice",
+    "length",
+    "size",
+    "bytesize",
+    "empty?",
+    "upcase",
+    "downcase",
+    "capitalize",
+    "swapcase",
+    "strip",
+    "lstrip",
+    "rstrip",
+    "chomp",
+    "chop",
+    "chars",
+    "lines",
+    "bytes",
+    "reverse",
+    "include?",
+    "start_with?",
+    "end_with?",
+    "index",
+    "rindex",
+    "count",
+    "sub",
+    "gsub",
+    "tr",
+    "delete",
+    "squeeze",
+    "center",
+    "ljust",
+    "rjust",
+    "to_i",
+    "to_f",
+    "to_str",
+    "to_sym",
+    "ord",
+    "hex",
+    "oct",
+    "each_char",
+    "each_line",
+    "split",
+    "partition",
+    "rpartition",
+    "casecmp",
+    "casecmp?",
+    "between?",
+    "ascii_only?",
 ];
 
 pub const SYMBOL_METHODS: &[&str] = &[
-    "id2name", "name", "to_sym", "length", "size", "upcase", "downcase", "capitalize", "<=>", "start_with?",
-    "end_with?", "empty?",
+    "id2name",
+    "name",
+    "to_sym",
+    "length",
+    "size",
+    "upcase",
+    "downcase",
+    "capitalize",
+    "<=>",
+    "start_with?",
+    "end_with?",
+    "empty?",
 ];
 
 pub const ENUMERABLE_METHODS: &[&str] = &[
-    "each_with_index", "each_with_object", "each_slice", "each_cons", "map", "collect", "flat_map",
-    "collect_concat", "filter_map", "select", "filter", "reject", "find", "detect", "find_index", "find_all",
-    "any?", "all?", "none?", "one?", "count", "include?", "member?", "min", "max", "min_by", "max_by", "minmax",
-    "sum", "inject", "reduce", "group_by", "partition", "chunk_while", "slice_when", "tally", "zip", "take",
-    "drop", "take_while", "drop_while", "first", "sort", "sort_by", "uniq", "to_a", "entries", "to_h",
+    "each_with_index",
+    "each_with_object",
+    "each_slice",
+    "each_cons",
+    "map",
+    "collect",
+    "flat_map",
+    "collect_concat",
+    "filter_map",
+    "select",
+    "filter",
+    "reject",
+    "find",
+    "detect",
+    "find_index",
+    "find_all",
+    "any?",
+    "all?",
+    "none?",
+    "one?",
+    "count",
+    "include?",
+    "member?",
+    "min",
+    "max",
+    "min_by",
+    "max_by",
+    "minmax",
+    "sum",
+    "inject",
+    "reduce",
+    "group_by",
+    "partition",
+    "chunk_while",
+    "slice_when",
+    "tally",
+    "zip",
+    "take",
+    "drop",
+    "take_while",
+    "drop_while",
+    "first",
+    "sort",
+    "sort_by",
+    "uniq",
+    "to_a",
+    "entries",
+    "to_h",
 ];
 
 pub const ARRAY_METHODS: &[&str] = &[
-    "[]", "slice", "[]=", "+", "-", "*", "&", "|", "<<", "<=>", "length", "size", "empty?", "first", "last",
-    "push", "append", "pop", "shift", "unshift", "prepend", "insert", "concat", "delete", "delete_at",
-    "delete_if", "clear", "fill", "index", "find_index", "rindex", "include?", "join", "reverse", "rotate",
-    "sort", "sort_by", "uniq", "flatten", "compact", "transpose", "values_at", "dig", "assoc", "product",
-    "combination", "permutation", "to_a", "to_h", "each", "each_index", "reverse_each", "sum",
+    "[]",
+    "slice",
+    "[]=",
+    "+",
+    "-",
+    "*",
+    "&",
+    "|",
+    "<<",
+    "<=>",
+    "length",
+    "size",
+    "empty?",
+    "first",
+    "last",
+    "push",
+    "append",
+    "pop",
+    "shift",
+    "unshift",
+    "prepend",
+    "insert",
+    "concat",
+    "delete",
+    "delete_at",
+    "delete_if",
+    "clear",
+    "fill",
+    "index",
+    "find_index",
+    "rindex",
+    "include?",
+    "join",
+    "reverse",
+    "rotate",
+    "sort",
+    "sort_by",
+    "uniq",
+    "flatten",
+    "compact",
+    "transpose",
+    "values_at",
+    "dig",
+    "assoc",
+    "product",
+    "combination",
+    "permutation",
+    "to_a",
+    "to_h",
+    "each",
+    "each_index",
+    "reverse_each",
+    "sum",
 ];
 
 pub const HASH_METHODS: &[&str] = &[
-    "[]", "[]=", "store", "fetch", "dig", "key?", "has_key?", "include?", "member?", "value?", "has_value?", "key",
-    "keys", "values", "values_at", "fetch_values", "length", "size", "empty?", "delete", "delete_if", "clear",
-    "merge", "merge!", "update", "to_a", "to_h", "invert", "transform_values", "transform_keys", "select",
-    "filter", "reject", "filter_map", "min_by", "max_by", "sort_by", "group_by", "partition", "find", "detect",
-    "any?", "all?", "none?", "count", "sum", "sort", "each", "each_pair", "each_key", "each_value",
-    "each_with_index", "each_with_object", "inject", "reduce", "map", "collect", "flat_map", "slice", "except",
-    "compact", "default", "default=", "first", "uniq", "zip", "tally",
+    "[]",
+    "[]=",
+    "store",
+    "fetch",
+    "dig",
+    "key?",
+    "has_key?",
+    "include?",
+    "member?",
+    "value?",
+    "has_value?",
+    "key",
+    "keys",
+    "values",
+    "values_at",
+    "fetch_values",
+    "length",
+    "size",
+    "empty?",
+    "delete",
+    "delete_if",
+    "clear",
+    "merge",
+    "merge!",
+    "update",
+    "to_a",
+    "to_h",
+    "invert",
+    "transform_values",
+    "transform_keys",
+    "select",
+    "filter",
+    "reject",
+    "filter_map",
+    "min_by",
+    "max_by",
+    "sort_by",
+    "group_by",
+    "partition",
+    "find",
+    "detect",
+    "any?",
+    "all?",
+    "none?",
+    "count",
+    "sum",
+    "sort",
+    "each",
+    "each_pair",
+    "each_key",
+    "each_value",
+    "each_with_index",
+    "each_with_object",
+    "inject",
+    "reduce",
+    "map",
+    "collect",
+    "flat_map",
+    "slice",
+    "except",
+    "compact",
+    "default",
+    "default=",
+    "first",
+    "uniq",
+    "zip",
+    "tally",
 ];
 
 pub const RANGE_METHODS: &[&str] = &[
-    "first", "begin", "last", "end", "min", "max", "size", "count", "sum", "to_a", "entries", "each",
-    "reverse_each", "step", "include?", "member?", "cover?", "exclude_end?",
+    "first",
+    "begin",
+    "last",
+    "end",
+    "min",
+    "max",
+    "size",
+    "count",
+    "sum",
+    "to_a",
+    "entries",
+    "each",
+    "reverse_each",
+    "step",
+    "include?",
+    "member?",
+    "cover?",
+    "exclude_end?",
 ];
 
 pub const ENUMERATOR_METHODS: &[&str] = &["with_index", "each_with_index", "with_object", "each", "size"];
@@ -100,8 +424,16 @@ pub const MATH_FUNCTIONS: &[&str] = &[
 
 pub const JSON_FUNCTIONS: &[&str] = &["parse", "generate", "pretty_generate"];
 
-pub const FILE_FUNCTIONS: &[&str] =
-    &["read", "exist?", "file?", "directory?", "basename", "dirname", "extname", "join"];
+pub const FILE_FUNCTIONS: &[&str] = &[
+    "read",
+    "exist?",
+    "file?",
+    "directory?",
+    "basename",
+    "dirname",
+    "extname",
+    "join",
+];
 
 pub const DIR_FUNCTIONS: &[&str] = &["glob"];
 
@@ -140,7 +472,10 @@ pub fn responds(v: &Value, name: &str) -> bool {
 }
 
 pub fn no_method<T>(recv: &Value, name: &str) -> R<T> {
-    fail(NO_METHOD_ERROR, format!("undefined method '{}' for {}", name, recv.recv_desc()))
+    fail(
+        NO_METHOD_ERROR,
+        format!("undefined method '{}' for {}", name, recv.recv_desc()),
+    )
 }
 
 /// Dispatches a method call through the allowlist.
@@ -172,7 +507,14 @@ pub fn argc(args: &[Value], min: usize, max: usize) -> R<()> {
         } else {
             format!("{}..{}", min, max)
         };
-        return fail(ARGUMENT_ERROR, format!("wrong number of arguments (given {}, expected {})", args.len(), expected));
+        return fail(
+            ARGUMENT_ERROR,
+            format!(
+                "wrong number of arguments (given {}, expected {})",
+                args.len(),
+                expected
+            ),
+        );
     }
     Ok(())
 }
@@ -182,7 +524,10 @@ pub fn to_int(v: &Value) -> R<i64> {
     match v {
         Value::Int(i) => Ok(*i),
         Value::Float(f) => crate::format::float_to_int(*f),
-        other => fail(TYPE_ERROR, format!("no implicit conversion of {} into Integer", other.type_desc())),
+        other => fail(
+            TYPE_ERROR,
+            format!("no implicit conversion of {} into Integer", other.type_desc()),
+        ),
     }
 }
 
@@ -190,7 +535,10 @@ pub fn to_int(v: &Value) -> R<i64> {
 pub fn to_str(v: &Value) -> R<Arc<str>> {
     match v {
         Value::Str(s) => Ok(s.clone()),
-        other => fail(TYPE_ERROR, format!("no implicit conversion of {} into String", other.type_desc())),
+        other => fail(
+            TYPE_ERROR,
+            format!("no implicit conversion of {} into String", other.type_desc()),
+        ),
     }
 }
 
@@ -223,7 +571,11 @@ pub(crate) use block_or_enum;
 pub fn iter_values(it: &mut Interp, v: &Value) -> R<Vec<Value>> {
     match v {
         Value::Array(a) => Ok(a.borrow().clone()),
-        Value::Hash(h) => Ok(h.borrow().iter().map(|(k, v)| Value::array(vec![k.clone(), v.clone()])).collect()),
+        Value::Hash(h) => Ok(h
+            .borrow()
+            .iter()
+            .map(|(k, v)| Value::array(vec![k.clone(), v.clone()]))
+            .collect()),
         Value::Range(_) => range::to_vec(v),
         Value::Enumerator(_) => enumerator::to_vec(it, v),
         other => no_method(other, "each"),
@@ -249,19 +601,63 @@ mod tests {
     #[test]
     fn every_method_with_assorted_arguments_never_panics() {
         let receivers = [
-            "nil", "true", "0", "-7", "2.5", "Float::NAN", "''", "'héllo wörld'", ":sym", "[]", "[3, 1, [2, nil], 'x']",
-            "{}", "{a: 1, 'b' => [2]}", "(1..4)", "(1...)", "(1.5..2.5)", "[1, 2].each", "{a: 1}.each", "3.times",
-            "Integer", "Math", "JSON", "File", "Dir", "Array", "Hash",
+            "nil",
+            "true",
+            "0",
+            "-7",
+            "2.5",
+            "Float::NAN",
+            "''",
+            "'héllo wörld'",
+            ":sym",
+            "[]",
+            "[3, 1, [2, nil], 'x']",
+            "{}",
+            "{a: 1, 'b' => [2]}",
+            "(1..4)",
+            "(1...)",
+            "(1.5..2.5)",
+            "[1, 2].each",
+            "{a: 1}.each",
+            "3.times",
+            "Integer",
+            "Math",
+            "JSON",
+            "File",
+            "Dir",
+            "Array",
+            "Hash",
         ];
-        let args = ["", "1", "-1", "2.5", "'a'", "nil", ":a", "[1, 2]", "{a: 1}", "(1..2)", "1, 2", "'a', 'b'", "1, 2, 3", "[[1, 2]]"];
+        let args = [
+            "", "1", "-1", "2.5", "'a'", "nil", ":a", "[1, 2]", "{a: 1}", "(1..2)", "1, 2", "'a', 'b'", "1, 2, 3",
+            "[[1, 2]]",
+        ];
         let blocks = ["", " { |*| }", " { |a, b| a }", " { |x| nil }", "(&:to_s)"];
         let all: Vec<&str> = [
-            OBJECT_METHODS, NIL_METHODS, BOOL_METHODS, INTEGER_METHODS, FLOAT_METHODS, STRING_METHODS, SYMBOL_METHODS,
-            ENUMERABLE_METHODS, ARRAY_METHODS, HASH_METHODS, RANGE_METHODS, ENUMERATOR_METHODS, CLASS_METHODS,
-            MATH_FUNCTIONS, JSON_FUNCTIONS, FILE_FUNCTIONS, DIR_FUNCTIONS, &["new"],
+            OBJECT_METHODS,
+            NIL_METHODS,
+            BOOL_METHODS,
+            INTEGER_METHODS,
+            FLOAT_METHODS,
+            STRING_METHODS,
+            SYMBOL_METHODS,
+            ENUMERABLE_METHODS,
+            ARRAY_METHODS,
+            HASH_METHODS,
+            RANGE_METHODS,
+            ENUMERATOR_METHODS,
+            CLASS_METHODS,
+            MATH_FUNCTIONS,
+            JSON_FUNCTIONS,
+            FILE_FUNCTIONS,
+            DIR_FUNCTIONS,
+            &["new"],
         ]
         .concat();
-        let opts = Options { max_steps: Some(20_000), ..Default::default() };
+        let opts = Options {
+            max_steps: Some(20_000),
+            ..Default::default()
+        };
         for r in receivers {
             for m in &all {
                 for a in args {

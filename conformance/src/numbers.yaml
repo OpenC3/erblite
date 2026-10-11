@@ -1,3 +1,11 @@
+# Copyright 2026 OpenC3, Inc.
+# All Rights Reserved.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See LICENSE.md for more details.
+
 - n: float_to_s
   t: "<% [1.0, 1.5, 100.0, 1e14, 1e15, 1e16, 123456789012345.0, 1234567890123456.0, 1000000000000000.5, 0.1, 0.001, 0.0001, 0.00001, 0.000123, 1.5e300, 5e-324, -0.0, -2.5, 1.0/3, 2.0/3, 1e100, 1.7976931348623157e308, 9007199254740993.0] .each do |f| %><%= f %>|<% end %>"
 - n: float_inspect_in_array

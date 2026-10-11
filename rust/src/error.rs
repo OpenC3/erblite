@@ -1,3 +1,11 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! Public error type and the internal control-flow type used by the interpreter.
 
 use crate::value::Value;
@@ -43,7 +51,12 @@ pub type R<T> = Result<T, Flow>;
 
 /// Builds an error `Flow` of the given kind.
 pub fn rt_err(kind: &'static str, message: impl Into<String>) -> Flow {
-    Flow::Err(Box::new(RtError { kind, message: message.into(), line: None, filename: None }))
+    Flow::Err(Box::new(RtError {
+        kind,
+        message: message.into(),
+        line: None,
+        filename: None,
+    }))
 }
 
 /// Shorthand for `Err(rt_err(..))`.

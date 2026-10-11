@@ -1,3 +1,11 @@
+# Copyright 2026 OpenC3, Inc.
+# All Rights Reserved.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See LICENSE.md for more details.
+
 """The file sandbox (spec §9.1): ``File``, ``Dir`` and the reading part of ``render``.
 
 Every path is resolved against ``base_dir`` with :func:`os.path.realpath` (which resolves

@@ -1,3 +1,11 @@
+# Copyright 2026 OpenC3, Inc.
+# All Rights Reserved.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See LICENSE.md for more details.
+
 - n: basics
   t: "<% r = (1..5) %><%= r.first %>,<%= r.last %>,<%= r.first(2).inspect %>,<%= r.last(2).inspect %>,<%= r.min %>,<%= r.max %>,<%= r.size %>,<%= r.count %>,<%= r.sum %>,<%= r.begin %>,<%= r.end %>,<%= r.exclude_end? %>"
 - n: exclusive

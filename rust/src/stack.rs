@@ -1,8 +1,16 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! Stack-usage guard. Recursive parsing, evaluation and data traversal check how much
 //! stack the current render has used and raise `LimitError` before the thread's stack
 //! could overflow, whatever the frame sizes of the build.
 
-use crate::error::{fail, R, LIMIT_ERROR};
+use crate::error::{fail, LIMIT_ERROR, R};
 use std::cell::Cell;
 
 /// Stack bytes a render may use. Spawned Rust threads get 2 MiB by default.
@@ -66,4 +74,3 @@ pub fn check() -> R<()> {
     }
     Ok(())
 }
-

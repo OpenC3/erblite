@@ -1,14 +1,29 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! Security, resource-limit and robustness tests. Templates must never crash the host.
 
 use erblite::{render, render_with, Error, Options, Template, Value, Vars};
 use std::path::PathBuf;
 
 fn fixtures() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..").join("conformance").join("fixtures")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("conformance")
+        .join("fixtures")
 }
 
 fn sandboxed() -> Options {
-    Options { base_dir: Some(fixtures()), max_steps: None, filename: Some("t.erb".into()) }
+    Options {
+        base_dir: Some(fixtures()),
+        max_steps: None,
+        filename: Some("t.erb".into()),
+    }
 }
 
 fn run(src: &str) -> Result<String, Error> {
@@ -63,11 +78,28 @@ fn bare_unknown_names_are_name_errors() {
 
 #[test]
 fn no_host_constants_or_globals() {
-    for src in ["<%= ENV['HOME'] %>", "<%= Kernel.exit %>", "<%= ObjectSpace %>", "<%= Process.pid %>", "<%= IO %>", "<%= Object.const_get(:ENV) %>"] {
+    for src in [
+        "<%= ENV['HOME'] %>",
+        "<%= Kernel.exit %>",
+        "<%= ObjectSpace %>",
+        "<%= Process.pid %>",
+        "<%= IO %>",
+        "<%= Object.const_get(:ENV) %>",
+    ] {
         let k = err_kind(src);
         assert!(k == "NameError" || k == "NoMethodError", "{} gave {}", src, k);
     }
-    for src in ["<%= $0 %>", "<%= @x %>", "<%= `ls` %>", "<%= %x(ls) %>", "<% def x; end %>", "<%= self %>", "<% BEGIN { } %>", "<%= ->{ 1 } %>", "<%= __FILE__ %>"] {
+    for src in [
+        "<%= $0 %>",
+        "<%= @x %>",
+        "<%= `ls` %>",
+        "<%= %x(ls) %>",
+        "<% def x; end %>",
+        "<%= self %>",
+        "<% BEGIN { } %>",
+        "<%= ->{ 1 } %>",
+        "<%= __FILE__ %>",
+    ] {
         assert_eq!(err_kind(src), "SyntaxError", "{}", src);
     }
 }
@@ -76,14 +108,64 @@ fn no_host_constants_or_globals() {
 fn respond_to_matches_dispatch_tables() {
     // every name respond_to? reports must be dispatchable (never NoMethodError)
     let samples = [
-        "nil", "true", "1", "1.5", "'s'", ":s", "[1, 2]", "{a: 1}", "(1..3)", "[1].each", "Integer", "Math", "JSON", "File",
-        "Dir", "Array", "Hash",
+        "nil", "true", "1", "1.5", "'s'", ":s", "[1, 2]", "{a: 1}", "(1..3)", "[1].each", "Integer", "Math", "JSON",
+        "File", "Dir", "Array", "Hash",
     ];
     let names = [
-        "==", "!=", "!", "===", "eql?", "nil?", "to_s", "inspect", "class", "frozen?", "dup", "freeze", "to_json", "abs",
-        "size", "length", "first", "last", "to_a", "to_h", "to_i", "to_f", "keys", "values", "upcase", "name", "each",
-        "map", "sum", "min", "max", "sort", "uniq", "reverse", "empty?", "succ", "chars", "begin", "end", "send", "eval",
-        "system", "instance_eval", "method", "__send__", "object_id", "fetch", "concat", "<<", "+", "-", "*", "/", "%",
+        "==",
+        "!=",
+        "!",
+        "===",
+        "eql?",
+        "nil?",
+        "to_s",
+        "inspect",
+        "class",
+        "frozen?",
+        "dup",
+        "freeze",
+        "to_json",
+        "abs",
+        "size",
+        "length",
+        "first",
+        "last",
+        "to_a",
+        "to_h",
+        "to_i",
+        "to_f",
+        "keys",
+        "values",
+        "upcase",
+        "name",
+        "each",
+        "map",
+        "sum",
+        "min",
+        "max",
+        "sort",
+        "uniq",
+        "reverse",
+        "empty?",
+        "succ",
+        "chars",
+        "begin",
+        "end",
+        "send",
+        "eval",
+        "system",
+        "instance_eval",
+        "method",
+        "__send__",
+        "object_id",
+        "fetch",
+        "concat",
+        "<<",
+        "+",
+        "-",
+        "*",
+        "/",
+        "%",
     ];
     for s in samples {
         for n in names {
@@ -91,14 +173,30 @@ fn respond_to_matches_dispatch_tables() {
             let call = run(&format!("<% {}.{}() %>", s, n));
             match call {
                 Err(e) if e.kind == "NoMethodError" => {
-                    assert!(!responds, "{}.respond_to?({}) is true but calling it raised NoMethodError", s, n)
+                    assert!(
+                        !responds,
+                        "{}.respond_to?({}) is true but calling it raised NoMethodError",
+                        s, n
+                    )
                 }
                 Err(e) if e.kind == "SyntaxError" => {}
                 _ => assert!(responds, "{}.{} works but respond_to? is false", s, n),
             }
         }
-        for forbidden in ["send", "eval", "system", "instance_eval", "method", "__send__", "object_id", "instance_variable_get"] {
-            assert_eq!(run(&format!("<%= {}.respond_to?(:{}) %>", s, forbidden)).unwrap(), "false");
+        for forbidden in [
+            "send",
+            "eval",
+            "system",
+            "instance_eval",
+            "method",
+            "__send__",
+            "object_id",
+            "instance_variable_get",
+        ] {
+            assert_eq!(
+                run(&format!("<%= {}.respond_to?(:{}) %>", s, forbidden)).unwrap(),
+                "false"
+            );
         }
     }
 }
@@ -121,14 +219,22 @@ fn sandbox_blocks_traversal() {
     ] {
         assert_eq!(err_kind(src), "SecurityError", "{}", src);
     }
-    assert_eq!(run("<%= File.exist?('../outside.txt') %>,<%= File.file?('/etc/passwd') %>").unwrap(), "false,false");
+    assert_eq!(
+        run("<%= File.exist?('../outside.txt') %>,<%= File.file?('/etc/passwd') %>").unwrap(),
+        "false,false"
+    );
     assert_eq!(run("<%= File.read('data/../data/lines.txt').size %>").unwrap(), "18");
 }
 
 #[test]
 fn sandbox_disabled_without_base_dir() {
     let opts = Options::default();
-    for src in ["<%= File.read('x') %>", "<%= File.exist?('x') %>", "<%= Dir.glob('*') %>", "<%= render('x') %>"] {
+    for src in [
+        "<%= File.read('x') %>",
+        "<%= File.exist?('x') %>",
+        "<%= Dir.glob('*') %>",
+        "<%= render('x') %>",
+    ] {
         let e = render_with(src, &Vars::new(), &opts).unwrap_err();
         assert_eq!(e.kind, "SecurityError", "{}", src);
     }
@@ -147,15 +253,24 @@ fn sandbox_blocks_symlink_escape() {
     std::os::unix::fs::symlink(dir.join("secret.txt"), dir.join("base/link.txt")).unwrap();
     std::os::unix::fs::symlink(&dir, dir.join("base/sub/up")).unwrap();
     std::os::unix::fs::symlink(dir.join("base/ok.txt"), dir.join("base/inner.txt")).unwrap();
-    let opts = Options { base_dir: Some(dir.join("base")), ..Default::default() };
+    let opts = Options {
+        base_dir: Some(dir.join("base")),
+        ..Default::default()
+    };
     let r = |s: &str| render_with(s, &Vars::new(), &opts);
     assert_eq!(r("<%= File.read('link.txt') %>").unwrap_err().kind, "SecurityError");
-    assert_eq!(r("<%= File.read('sub/up/secret.txt') %>").unwrap_err().kind, "SecurityError");
+    assert_eq!(
+        r("<%= File.read('sub/up/secret.txt') %>").unwrap_err().kind,
+        "SecurityError"
+    );
     assert_eq!(r("<%= render('link.txt') %>").unwrap_err().kind, "SecurityError");
     assert_eq!(r("<%= File.exist?('link.txt') %>").unwrap(), "false");
     assert_eq!(r("<%= File.read('inner.txt') %>").unwrap(), "ok");
     assert_eq!(r("<%= File.read('missing.txt') %>").unwrap_err().kind, "IOError");
-    assert_eq!(r("<%= File.read('sub/up/missing.txt') %>").unwrap_err().kind, "SecurityError");
+    assert_eq!(
+        r("<%= File.read('sub/up/missing.txt') %>").unwrap_err().kind,
+        "SecurityError"
+    );
     let globbed = r("<%= Dir.glob('**/*.txt') %>").unwrap();
     assert!(!globbed.contains("secret"), "{}", globbed);
     let _ = std::fs::remove_dir_all(&dir);
@@ -165,7 +280,10 @@ fn sandbox_blocks_symlink_escape() {
 
 #[test]
 fn step_limit_stops_runaway_loops() {
-    let opts = Options { max_steps: Some(10_000), ..Default::default() };
+    let opts = Options {
+        max_steps: Some(10_000),
+        ..Default::default()
+    };
     for src in [
         "<% loop { } %>",
         "<% while true; end %>",
@@ -179,7 +297,12 @@ fn step_limit_stops_runaway_loops() {
         "<% 1.step(nil, 1).each(&:to_s) %>",
     ] {
         match render_with(src, &Vars::new(), &opts) {
-            Err(e) => assert!(e.kind == "LimitError" || e.kind == "SyntaxError" || e.kind == "NoMethodError", "{}: {}", src, e),
+            Err(e) => assert!(
+                e.kind == "LimitError" || e.kind == "SyntaxError" || e.kind == "NoMethodError",
+                "{}: {}",
+                src,
+                e
+            ),
             Ok(o) => panic!("{} should not finish: {:?}", src, o),
         }
     }
@@ -199,7 +322,12 @@ fn allocation_limits() {
         "<% a = (1..10).to_a %><%= a.product(a, a, a, a, a, a, a).size %>",
     ] {
         let k = err_kind(src);
-        assert!(k == "LimitError" || k == "RangeError" || k == "ArgumentError", "{}: {}", src, k);
+        assert!(
+            k == "LimitError" || k == "RangeError" || k == "ArgumentError",
+            "{}: {}",
+            src,
+            k
+        );
     }
 }
 
@@ -210,7 +338,12 @@ fn render_nesting_limit() {
 
 /// Runs `f` on a thread with a small stack, as a host might.
 fn on_small_stack<F: FnOnce() + Send + 'static>(f: F) {
-    std::thread::Builder::new().stack_size(2 << 20).spawn(f).unwrap().join().unwrap();
+    std::thread::Builder::new()
+        .stack_size(2 << 20)
+        .spawn(f)
+        .unwrap()
+        .join()
+        .unwrap();
 }
 
 #[test]
@@ -251,18 +384,53 @@ fn deep_nesting_does_not_overflow() {
 fn deeply_nested_data_is_safe() {
     on_small_stack(|| {
         // building 100k levels of nesting, then inspecting, comparing, serializing and dropping it
-        for tail in ["<%= a.inspect.size %>", "<%= a == a.dup %>", "<%= a.to_json %>", "<%= a.flatten.size %>", "<%= {a => 1}.size %>", "<%= a.hash rescue 1 %>", ""] {
+        for tail in [
+            "<%= a.inspect.size %>",
+            "<%= a == a.dup %>",
+            "<%= a.to_json %>",
+            "<%= a.flatten.size %>",
+            "<%= {a => 1}.size %>",
+            "<%= a.hash rescue 1 %>",
+            "",
+        ] {
             let src = format!("<% a = [] %><% 100000.times {{ a = [a] }} %>{}", tail);
             let _ = render(&src, &Vars::new());
         }
-        let _ = render("<% h = {} %><% 100000.times { h = {k: h} } %><%= h.inspect.size %>", &Vars::new());
-        let _ = render("<% e = [1].each %><% 100000.times { e = e.with_index } %><%= e.inspect.size %>", &Vars::new());
+        let _ = render(
+            "<% h = {} %><% 100000.times { h = {k: h} } %><%= h.inspect.size %>",
+            &Vars::new(),
+        );
+        let _ = render(
+            "<% e = [1].each %><% 100000.times { e = e.with_index } %><%= e.inspect.size %>",
+            &Vars::new(),
+        );
         // self-referencing structures
-        assert_eq!(render("<% a = [1] %><% a << a %><%= a.inspect %>", &Vars::new()).unwrap(), "[1, [...]]");
-        assert_eq!(render("<% h = {} %><% h[:h] = h %><%= h.inspect %>", &Vars::new()).unwrap(), "{h: {...}}");
-        assert_eq!(render("<% a = [] %><% a << a %><%= a.flatten rescue 1 %>", &Vars::new()).unwrap_err().kind, "SyntaxError");
-        assert_eq!(render("<% a = [] %><% a << a %><%= a.flatten %>", &Vars::new()).unwrap_err().kind, "ArgumentError");
-        assert_eq!(render("<% a = [] %><% a << a %><%= a.join %>", &Vars::new()).unwrap_err().kind, "ArgumentError");
+        assert_eq!(
+            render("<% a = [1] %><% a << a %><%= a.inspect %>", &Vars::new()).unwrap(),
+            "[1, [...]]"
+        );
+        assert_eq!(
+            render("<% h = {} %><% h[:h] = h %><%= h.inspect %>", &Vars::new()).unwrap(),
+            "{h: {...}}"
+        );
+        assert_eq!(
+            render("<% a = [] %><% a << a %><%= a.flatten rescue 1 %>", &Vars::new())
+                .unwrap_err()
+                .kind,
+            "SyntaxError"
+        );
+        assert_eq!(
+            render("<% a = [] %><% a << a %><%= a.flatten %>", &Vars::new())
+                .unwrap_err()
+                .kind,
+            "ArgumentError"
+        );
+        assert_eq!(
+            render("<% a = [] %><% a << a %><%= a.join %>", &Vars::new())
+                .unwrap_err()
+                .kind,
+            "ArgumentError"
+        );
         assert!(render("<% a = [] %><% a << a %><%= a == a %>", &Vars::new()).is_ok());
         assert!(render("<% a = [] %><% a << a %><%= a.to_json %>", &Vars::new()).is_err());
     });
@@ -301,27 +469,50 @@ fn public_api() {
     vars.insert("name".into(), Value::from("World"));
     vars.insert("n".into(), Value::from(3));
     vars.insert("list".into(), Value::from(vec![1, 2, 3]));
-    vars.insert("cfg".into(), Value::from_json(r#"{"a": {"b": [1, 2.5, null]}}"#).unwrap());
-    let t = Template::compile("<%= name %>:<%= n * 2 %>:<%= list.sum %>:<%= cfg['a']['b'].inspect %>", "x.erb").unwrap();
+    vars.insert(
+        "cfg".into(),
+        Value::from_json(r#"{"a": {"b": [1, 2.5, null]}}"#).unwrap(),
+    );
+    let t = Template::compile(
+        "<%= name %>:<%= n * 2 %>:<%= list.sum %>:<%= cfg['a']['b'].inspect %>",
+        "x.erb",
+    )
+    .unwrap();
     assert_eq!(t.render(&vars, &Options::default()).unwrap(), "World:6:6:[1, 2.5, nil]");
     // templates can be rendered repeatedly; values are not shared between renders
     let t = Template::compile("<% list << 4 %><%= list.size %>", "y.erb").unwrap();
     assert_eq!(t.render(&vars, &Options::default()).unwrap(), "4");
 
     let e = Template::compile("line1\n<% if %>", "bad.erb").err().unwrap();
-    assert_eq!((e.kind.as_str(), e.line, e.filename.as_str()), ("SyntaxError", 2, "bad.erb"));
+    assert_eq!(
+        (e.kind.as_str(), e.line, e.filename.as_str()),
+        ("SyntaxError", 2, "bad.erb")
+    );
     assert!(e.to_string().starts_with("bad.erb:2: SyntaxError: "));
 
-    let e = render_with("\n\n<%= nil.upcase %>", &Vars::new(), &Options { filename: Some("f.erb".into()), ..Default::default() })
-        .unwrap_err();
-    assert_eq!(e.to_string(), "f.erb:3: NoMethodError: undefined method 'upcase' for nil");
+    let e = render_with(
+        "\n\n<%= nil.upcase %>",
+        &Vars::new(),
+        &Options {
+            filename: Some("f.erb".into()),
+            ..Default::default()
+        },
+    )
+    .unwrap_err();
+    assert_eq!(
+        e.to_string(),
+        "f.erb:3: NoMethodError: undefined method 'upcase' for nil"
+    );
     let _: &dyn std::error::Error = &e;
 }
 
 #[test]
 fn errors_in_partials_report_partial_location() {
     let e = run("<%= render('partials/_noscope.erb') %>").unwrap_err();
-    assert_eq!((e.kind.as_str(), e.filename.as_str(), e.line), ("NameError", "partials/_noscope.erb", 1));
+    assert_eq!(
+        (e.kind.as_str(), e.filename.as_str(), e.line),
+        ("NameError", "partials/_noscope.erb", 1)
+    );
 }
 
 // ----- fuzzing --------------------------------------------------------------------------------
@@ -360,22 +551,121 @@ const SEEDS: &[&str] = &[
 ];
 
 const FRAGMENTS: &[&str] = &[
-    "<%", "%>", "<%=", "-%>", "<%-", "<%#", "<%%", "(", ")", "[", "]", "{", "}", "|", "||", "&&", "do", "end", "if",
-    "else", "elsif", "while", "until", "for", "in", "case", "when", "then", "break", "next", "x", "nil", "1", "-1",
-    "0.5", "'s'", "\"#{", "\"", "'", ":", "::", "?", ",", ".", "&.", "..", "...", "=", "==", "+", "-", "*", "**", "/",
-    "%", "<<", ">>", "<=>", "!", "not", "and", "or", "\n", ";", " ", "#", "\\", "a:", "=>", "&:upcase", "x.each",
-    ".map", ".sum", ".inspect", "%w[", "@", "$", "`", "9223372036854775807", "1e308", "Float::NAN", "[1, [2]]",
-    "{a: {b: 1}}", ".each_slice(0)", ".flatten", ".sort", "loop", "render", "File.read", "'..'", "Integer('z')",
-    "format('%", "%d", "%-5.2f", "%<a>s", "\u{1F600}", "é", "\0", "\r\n",
+    "<%",
+    "%>",
+    "<%=",
+    "-%>",
+    "<%-",
+    "<%#",
+    "<%%",
+    "(",
+    ")",
+    "[",
+    "]",
+    "{",
+    "}",
+    "|",
+    "||",
+    "&&",
+    "do",
+    "end",
+    "if",
+    "else",
+    "elsif",
+    "while",
+    "until",
+    "for",
+    "in",
+    "case",
+    "when",
+    "then",
+    "break",
+    "next",
+    "x",
+    "nil",
+    "1",
+    "-1",
+    "0.5",
+    "'s'",
+    "\"#{",
+    "\"",
+    "'",
+    ":",
+    "::",
+    "?",
+    ",",
+    ".",
+    "&.",
+    "..",
+    "...",
+    "=",
+    "==",
+    "+",
+    "-",
+    "*",
+    "**",
+    "/",
+    "%",
+    "<<",
+    ">>",
+    "<=>",
+    "!",
+    "not",
+    "and",
+    "or",
+    "\n",
+    ";",
+    " ",
+    "#",
+    "\\",
+    "a:",
+    "=>",
+    "&:upcase",
+    "x.each",
+    ".map",
+    ".sum",
+    ".inspect",
+    "%w[",
+    "@",
+    "$",
+    "`",
+    "9223372036854775807",
+    "1e308",
+    "Float::NAN",
+    "[1, [2]]",
+    "{a: {b: 1}}",
+    ".each_slice(0)",
+    ".flatten",
+    ".sort",
+    "loop",
+    "render",
+    "File.read",
+    "'..'",
+    "Integer('z')",
+    "format('%",
+    "%d",
+    "%-5.2f",
+    "%<a>s",
+    "\u{1F600}",
+    "é",
+    "\0",
+    "\r\n",
 ];
 
 #[test]
 fn fuzz_no_panics() {
     let mut rng = Rng(0x9E37_79B9_7F4A_7C15);
-    let opts = Options { base_dir: Some(fixtures()), max_steps: Some(20_000), filename: None };
+    let opts = Options {
+        base_dir: Some(fixtures()),
+        max_steps: Some(20_000),
+        filename: None,
+    };
     let mut vars = Vars::new();
     vars.insert("cond".into(), Value::from(true));
-    vars.insert("x".into(), Value::from(vec![Value::from(1), Value::from("two"), Value::Nil]));
+    vars.insert(
+        "x".into(),
+        Value::from(vec![Value::from(1), Value::from("two"), Value::Nil]),
+    );
     let iterations = 20_000;
     for i in 0..iterations {
         let mut src: Vec<char> = SEEDS[rng.below(SEEDS.len())].chars().collect();
@@ -426,7 +716,14 @@ fn fuzz_random_bytes_no_panics() {
             })
             .collect();
         let r = std::panic::catch_unwind(|| {
-            let _ = render_with(&s, &Vars::new(), &Options { max_steps: Some(5_000), ..Default::default() });
+            let _ = render_with(
+                &s,
+                &Vars::new(),
+                &Options {
+                    max_steps: Some(5_000),
+                    ..Default::default()
+                },
+            );
         });
         assert!(r.is_ok(), "panic with {:?}", s);
     }

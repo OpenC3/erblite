@@ -1,4 +1,12 @@
 #![forbid(unsafe_code)]
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! Command line renderer: `erblite template.erb [--vars vars.json] [--base-dir DIR] [--max-steps N]`.
 
 use erblite::{vars_from_value, Options, Template, Value, Vars};
@@ -74,9 +82,19 @@ fn main() -> ExitCode {
         }
     };
     let base_dir = base_dir.or_else(|| {
-        PathBuf::from(&template).parent().map(|p| if p.as_os_str().is_empty() { PathBuf::from(".") } else { p.to_path_buf() })
+        PathBuf::from(&template).parent().map(|p| {
+            if p.as_os_str().is_empty() {
+                PathBuf::from(".")
+            } else {
+                p.to_path_buf()
+            }
+        })
     });
-    let opts = Options { base_dir, max_steps, filename: Some(template.clone()) };
+    let opts = Options {
+        base_dir,
+        max_steps,
+        filename: Some(template.clone()),
+    };
     let result = Template::compile(&source, &template).and_then(|t| t.render(&vars, &opts));
     match result {
         Ok(out) => {

@@ -1,13 +1,21 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! String (§8.5) and Symbol (§8.6) methods. Strings are immutable values.
 
-use std::sync::Arc;
 use super::conv::{str_oct, str_to_f, str_to_i};
 use super::numeric::{between, comparison_failed};
 use super::{argc, block_or_enum, check_str_len, object, range, to_int, to_str};
-use crate::error::{fail, R, ARGUMENT_ERROR, TYPE_ERROR};
+use crate::error::{fail, ARGUMENT_ERROR, R, TYPE_ERROR};
 use crate::format::sprintf;
 use crate::interp::{BlockArg, Interp};
 use crate::value::Value;
+use std::sync::Arc;
 
 const STRIP_WS: &[char] = &[' ', '\t', '\n', '\x0b', '\x0c', '\r', '\0'];
 
@@ -24,7 +32,10 @@ pub fn shovel_arg(v: &Value) -> R<String> {
             Some(c) => Ok(c.to_string()),
             None => fail(crate::error::RANGE_ERROR, format!("{} out of char range", i)),
         },
-        other => fail(TYPE_ERROR, format!("no implicit conversion of {} into String", other.type_desc())),
+        other => fail(
+            TYPE_ERROR,
+            format!("no implicit conversion of {} into String", other.type_desc()),
+        ),
     }
 }
 
@@ -55,7 +66,11 @@ fn index(st: &str, args: &[Value]) -> R<Value> {
             Some((b, l)) => Ok(Value::string(chars_to_string(&chars[b as usize..(b + l) as usize]))),
             None => Ok(Value::Nil),
         },
-        Value::Str(sub) => Ok(if st.contains(&**sub) { Value::Str(sub.clone()) } else { Value::Nil }),
+        Value::Str(sub) => Ok(if st.contains(&**sub) {
+            Value::Str(sub.clone())
+        } else {
+            Value::Nil
+        }),
         other => {
             let i = to_int(other)?;
             let i = if i < 0 { i + n } else { i };
@@ -82,7 +97,10 @@ impl CharSet {
             neg = true;
             i = 1;
         }
-        Ok(CharSet { neg, chars: expand_set(&raw[i..])? })
+        Ok(CharSet {
+            neg,
+            chars: expand_set(&raw[i..])?,
+        })
     }
 
     fn contains(&self, c: char) -> bool {
@@ -170,7 +188,10 @@ fn expand_replacement(rep: &str, src: &str, m: usize, e: usize) -> R<String> {
                 '1'..='9' => {}
                 'k' if chars.get(i + 2) == Some(&'<') => {
                     let name: String = chars[i + 3..].iter().take_while(|c| **c != '>').collect();
-                    return fail(crate::error::INDEX_ERROR, format!("undefined group name reference: {}", name));
+                    return fail(
+                        crate::error::INDEX_ERROR,
+                        format!("undefined group name reference: {}", name),
+                    );
                 }
                 other => {
                     out.push('\\');
@@ -190,7 +211,12 @@ fn sub_gsub(it: &mut Interp, st: &str, args: &[Value], blk: Option<&BlockArg>, g
     argc(args, 1, 2)?;
     let pat = match &args[0] {
         Value::Str(p) => p.clone(),
-        other => return fail(TYPE_ERROR, format!("wrong argument type {} (expected Regexp)", other.class_name())),
+        other => {
+            return fail(
+                TYPE_ERROR,
+                format!("wrong argument type {} (expected Regexp)", other.class_name()),
+            )
+        }
     };
     if args.len() == 1 && blk.is_none() {
         return fail(ARGUMENT_ERROR, "wrong number of arguments (given 1, expected 2)");
@@ -220,7 +246,12 @@ fn sub_gsub(it: &mut Interp, st: &str, args: &[Value], blk: Option<&BlockArg>, g
                 };
                 v.to_s()?
             }
-            Some(other) => return fail(TYPE_ERROR, format!("no implicit conversion of {} into String", other.type_desc())),
+            Some(other) => {
+                return fail(
+                    TYPE_ERROR,
+                    format!("no implicit conversion of {} into String", other.type_desc()),
+                )
+            }
             None => match blk {
                 Some(b) => it.yield1(b, matched)?.to_s()?,
                 None => String::new(),
@@ -261,7 +292,12 @@ fn split(st: &str, args: &[Value]) -> R<Value> {
     let sep = match args.first() {
         None | Some(Value::Nil) => None,
         Some(Value::Str(x)) => Some(x.clone()),
-        Some(other) => return fail(TYPE_ERROR, format!("wrong argument type {} (expected Regexp)", other.class_name())),
+        Some(other) => {
+            return fail(
+                TYPE_ERROR,
+                format!("wrong argument type {} (expected Regexp)", other.class_name()),
+            )
+        }
     };
     let limit = match args.get(1) {
         Some(v) => to_int(v)?,
@@ -269,7 +305,11 @@ fn split(st: &str, args: &[Value]) -> R<Value> {
     };
     // Ruby returns the receiver untouched (no whitespace skipping) for limit 1.
     if limit == 1 {
-        let parts = if st.is_empty() { vec![] } else { vec![Value::string(st.to_string())] };
+        let parts = if st.is_empty() {
+            vec![]
+        } else {
+            vec![Value::string(st.to_string())]
+        };
         return Ok(Value::array(parts));
     }
     let mut parts: Vec<String> = Vec::new();
@@ -496,7 +536,14 @@ fn str_cmp_arg(recv: &Value, arg: &Value) -> R<std::cmp::Ordering> {
     recv.compare(arg).ok_or_else(|| comparison_failed(recv, arg))
 }
 
-pub fn call_str(it: &mut Interp, st: &Arc<str>, recv: &Value, name: &str, args: Vec<Value>, blk: Option<&BlockArg>) -> R<Value> {
+pub fn call_str(
+    it: &mut Interp,
+    st: &Arc<str>,
+    recv: &Value,
+    name: &str,
+    args: Vec<Value>,
+    blk: Option<&BlockArg>,
+) -> R<Value> {
     match name {
         "+" => {
             argc(&args, 1, 1)?;
@@ -694,7 +741,11 @@ pub fn call_str(it: &mut Interp, st: &Arc<str>, recv: &Value, name: &str, args: 
         "delete" => {
             argc(&args, 1, usize::MAX)?;
             let sets = sets(&args)?;
-            Ok(Value::string(st.chars().filter(|c| !sets.iter().all(|set| set.contains(*c))).collect()))
+            Ok(Value::string(
+                st.chars()
+                    .filter(|c| !sets.iter().all(|set| set.contains(*c)))
+                    .collect(),
+            ))
         }
         "squeeze" => {
             let sets = sets(&args)?;
@@ -755,9 +806,18 @@ pub fn call_str(it: &mut Interp, st: &Arc<str>, recv: &Value, name: &str, args: 
             argc(&args, 1, 1)?;
             let sep = match &args[0] {
                 Value::Str(x) => x.clone(),
-                other => return fail(TYPE_ERROR, format!("wrong argument type {} (expected Regexp)", other.class_name())),
+                other => {
+                    return fail(
+                        TYPE_ERROR,
+                        format!("wrong argument type {} (expected Regexp)", other.class_name()),
+                    )
+                }
             };
-            let found = if name == "partition" { st.find(&*sep) } else { st.rfind(&*sep) };
+            let found = if name == "partition" {
+                st.find(&*sep)
+            } else {
+                st.rfind(&*sep)
+            };
             let parts = match found {
                 Some(i) => [&st[..i], &st[i..i + sep.len()], &st[i + sep.len()..]],
                 None if name == "partition" => [&st[..], "", ""],
@@ -786,7 +846,14 @@ pub fn call_str(it: &mut Interp, st: &Arc<str>, recv: &Value, name: &str, args: 
     }
 }
 
-pub fn call_sym(it: &mut Interp, sy: &Arc<str>, recv: &Value, name: &str, args: Vec<Value>, blk: Option<&BlockArg>) -> R<Value> {
+pub fn call_sym(
+    it: &mut Interp,
+    sy: &Arc<str>,
+    recv: &Value,
+    name: &str,
+    args: Vec<Value>,
+    blk: Option<&BlockArg>,
+) -> R<Value> {
     match name {
         "id2name" | "name" => {
             argc(&args, 0, 0)?;

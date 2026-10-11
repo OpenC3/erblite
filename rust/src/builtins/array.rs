@@ -1,18 +1,29 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! Array methods (§8.7). Arrays are mutable and shared by reference.
 
-use std::sync::Arc;
 use super::enumerable::{self, sort_by, sort_values, sum_values, uniq};
 use super::{argc, block_or_enum, check_array_len, check_str_len, object, range, to_int, to_str};
-use crate::error::{fail, R, ARGUMENT_ERROR, INDEX_ERROR, LIMIT_ERROR, RANGE_ERROR, TYPE_ERROR};
+use crate::error::{fail, ARGUMENT_ERROR, INDEX_ERROR, LIMIT_ERROR, R, RANGE_ERROR, TYPE_ERROR};
 use crate::interp::{BlockArg, Interp};
 use crate::value::{Arr, Value, MAX_DATA_DEPTH};
 use std::collections::HashSet;
 use std::rc::Rc;
+use std::sync::Arc;
 
 fn to_ary(v: &Value) -> R<Vec<Value>> {
     match v {
         Value::Array(a) => Ok(a.borrow().clone()),
-        other => fail(TYPE_ERROR, format!("no implicit conversion of {} into Array", other.type_desc())),
+        other => fail(
+            TYPE_ERROR,
+            format!("no implicit conversion of {} into Array", other.type_desc()),
+        ),
     }
 }
 
@@ -37,7 +48,11 @@ fn index_get(items: &[Value], args: &[Value]) -> R<Value> {
         other => {
             let i = to_int(other)?;
             let i = if i < 0 { i + n } else { i };
-            Ok(if i < 0 || i >= n { Value::Nil } else { items[i as usize].clone() })
+            Ok(if i < 0 || i >= n {
+                Value::Nil
+            } else {
+                items[i as usize].clone()
+            })
         }
     }
 }
@@ -72,7 +87,10 @@ fn index_set(a: &Rc<Arr>, args: &[Value]) -> R<Value> {
         if start < 0 {
             start += n;
             if start < 0 {
-                return fail(INDEX_ERROR, format!("index {} too small for array; minimum: -{}", start - n, n));
+                return fail(
+                    INDEX_ERROR,
+                    format!("index {} too small for array; minimum: -{}", start - n, n),
+                );
             }
         }
         if len < 0 {
@@ -112,7 +130,10 @@ fn index_set(a: &Rc<Arr>, args: &[Value]) -> R<Value> {
             if i < 0 {
                 i += n;
                 if i < 0 {
-                    return fail(INDEX_ERROR, format!("index {} too small for array; minimum: -{}", i - n, n));
+                    return fail(
+                        INDEX_ERROR,
+                        format!("index {} too small for array; minimum: -{}", i - n, n),
+                    );
                 }
             }
             let iu = i as usize;
@@ -287,13 +308,31 @@ fn opt_count(args: &[Value]) -> R<Option<usize>> {
 }
 
 pub fn call(it: &mut Interp, recv: &Value, name: &str, args: Vec<Value>, blk: Option<&BlockArg>) -> R<Value> {
-    let Value::Array(a) = recv else { return object::call(it, recv, name, args, blk) };
+    let Value::Array(a) = recv else {
+        return object::call(it, recv, name, args, blk);
+    };
     const MUTATORS: &[&str] = &[
-        "[]=", "<<", "push", "append", "pop", "shift", "unshift", "prepend", "insert", "concat", "delete", "delete_at",
-        "delete_if", "clear", "fill",
+        "[]=",
+        "<<",
+        "push",
+        "append",
+        "pop",
+        "shift",
+        "unshift",
+        "prepend",
+        "insert",
+        "concat",
+        "delete",
+        "delete_at",
+        "delete_if",
+        "clear",
+        "fill",
     ];
     if a.frozen.get() && MUTATORS.contains(&name) {
-        return fail(crate::error::FROZEN_ERROR, format!("can't modify frozen Array: {}", recv.inspect()?));
+        return fail(
+            crate::error::FROZEN_ERROR,
+            format!("can't modify frozen Array: {}", recv.inspect()?),
+        );
     }
     let snapshot = || a.borrow().clone();
     match name {
@@ -310,7 +349,9 @@ pub fn call(it: &mut Interp, recv: &Value, name: &str, args: Vec<Value>, blk: Op
         "-" => {
             argc(&args, 1, 1)?;
             let o = hkeys(&to_ary(&args[0])?);
-            Ok(Value::array(snapshot().into_iter().filter(|x| !o.contains(&x.hkey())).collect()))
+            Ok(Value::array(
+                snapshot().into_iter().filter(|x| !o.contains(&x.hkey())).collect(),
+            ))
         }
         "*" => {
             argc(&args, 1, 1)?;
@@ -334,7 +375,10 @@ pub fn call(it: &mut Interp, recv: &Value, name: &str, args: Vec<Value>, blk: Op
             let o = hkeys(&to_ary(&args[0])?);
             let mut seen = HashSet::new();
             Ok(Value::array(
-                snapshot().into_iter().filter(|x| o.contains(&x.hkey()) && seen.insert(x.hkey())).collect(),
+                snapshot()
+                    .into_iter()
+                    .filter(|x| o.contains(&x.hkey()) && seen.insert(x.hkey()))
+                    .collect(),
             ))
         }
         "|" => {
@@ -370,10 +414,16 @@ pub fn call(it: &mut Interp, recv: &Value, name: &str, args: Vec<Value>, blk: Op
         "first" | "last" => {
             let v = a.borrow();
             match opt_count(&args)? {
-                None => Ok((if name == "first" { v.first() } else { v.last() }).cloned().unwrap_or(Value::Nil)),
+                None => Ok((if name == "first" { v.first() } else { v.last() })
+                    .cloned()
+                    .unwrap_or(Value::Nil)),
                 Some(n) => {
                     let k = n.min(v.len());
-                    Ok(Value::array(if name == "first" { v[..k].to_vec() } else { v[v.len() - k..].to_vec() }))
+                    Ok(Value::array(if name == "first" {
+                        v[..k].to_vec()
+                    } else {
+                        v[v.len() - k..].to_vec()
+                    }))
                 }
             }
         }
@@ -415,7 +465,10 @@ pub fn call(it: &mut Interp, recv: &Value, name: &str, args: Vec<Value>, blk: Op
             if i < 0 {
                 i += n + 1;
                 if i < 0 {
-                    return fail(INDEX_ERROR, format!("index {} too small for array; minimum: -{}", i - n - 1, n + 1));
+                    return fail(
+                        INDEX_ERROR,
+                        format!("index {} too small for array; minimum: -{}", i - n - 1, n + 1),
+                    );
                 }
             }
             splice(a, i, 0, args[1..].to_vec())?;
@@ -444,7 +497,11 @@ pub fn call(it: &mut Interp, recv: &Value, name: &str, args: Vec<Value>, blk: Op
             let n = v.len() as i64;
             let i = to_int(&args[0])?;
             let i = if i < 0 { i + n } else { i };
-            Ok(if i < 0 || i >= n { Value::Nil } else { v.remove(i as usize) })
+            Ok(if i < 0 || i >= n {
+                Value::Nil
+            } else {
+                v.remove(i as usize)
+            })
         }
         "delete_if" => {
             argc(&args, 0, 0)?;
@@ -488,7 +545,11 @@ pub fn call(it: &mut Interp, recv: &Value, name: &str, args: Vec<Value>, blk: Op
                 v.reverse();
             }
             if let Some(t) = args.first() {
-                return Ok(v.iter().find(|(_, x)| x.equals(t)).map(|(i, _)| Value::Int(*i as i64)).unwrap_or(Value::Nil));
+                return Ok(v
+                    .iter()
+                    .find(|(_, x)| x.equals(t))
+                    .map(|(i, _)| Value::Int(*i as i64))
+                    .unwrap_or(Value::Nil));
             }
             let b = block_or_enum!(blk, recv, name, args);
             for (i, x) in v {
@@ -556,15 +617,22 @@ pub fn call(it: &mut Interp, recv: &Value, name: &str, args: Vec<Value>, blk: Op
         "transpose" => {
             argc(&args, 0, 0)?;
             let rows: Vec<Vec<Value>> = snapshot().iter().map(to_ary).collect::<R<_>>()?;
-            let Some(first) = rows.first() else { return Ok(Value::array(vec![])) };
+            let Some(first) = rows.first() else {
+                return Ok(Value::array(vec![]));
+            };
             let w = first.len();
             for r in &rows {
                 if r.len() != w {
-                    return fail(INDEX_ERROR, format!("element size differs ({} should be {})", r.len(), w));
+                    return fail(
+                        INDEX_ERROR,
+                        format!("element size differs ({} should be {})", r.len(), w),
+                    );
                 }
             }
             Ok(Value::array(
-                (0..w).map(|c| Value::array(rows.iter().map(|r| r[c].clone()).collect())).collect(),
+                (0..w)
+                    .map(|c| Value::array(rows.iter().map(|r| r[c].clone()).collect()))
+                    .collect(),
             ))
         }
         "values_at" => {
@@ -690,7 +758,11 @@ pub fn call(it: &mut Interp, recv: &Value, name: &str, args: Vec<Value>, blk: Op
                 }
                 i += 1;
             }
-            Ok(if name == "each_with_index" { recv.clone() } else { Value::array(out) })
+            Ok(if name == "each_with_index" {
+                recv.clone()
+            } else {
+                Value::array(out)
+            })
         }
         "each_index" => {
             argc(&args, 0, 0)?;

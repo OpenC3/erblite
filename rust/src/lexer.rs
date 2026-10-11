@@ -1,3 +1,11 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! Splits a template into text and tags (ERB `trim_mode: "-"`), then tokenizes the code.
 
 use crate::error::{Flow, RtError, SYNTAX_ERROR};
@@ -49,29 +57,52 @@ pub struct Token {
 }
 
 pub fn syntax_error(msg: impl Into<String>, line: u32) -> Flow {
-    Flow::Err(Box::new(RtError { kind: SYNTAX_ERROR, message: msg.into(), line: Some(line), filename: None }))
+    Flow::Err(Box::new(RtError {
+        kind: SYNTAX_ERROR,
+        message: msg.into(),
+        line: Some(line),
+        filename: None,
+    }))
 }
 
 const KEYWORDS: &[&str] = &[
-    "if", "elsif", "else", "unless", "then", "end", "while", "until", "for", "in", "do", "case", "when",
-    "break", "next", "nil", "true", "false", "and", "or", "not",
+    "if", "elsif", "else", "unless", "then", "end", "while", "until", "for", "in", "do", "case", "when", "break",
+    "next", "nil", "true", "false", "and", "or", "not",
 ];
 
 const RESERVED: &[&str] = &[
-    "begin", "self", "def", "class", "module", "return", "yield", "rescue", "ensure", "super", "alias",
-    "undef", "redo", "retry", "defined?", "BEGIN", "END", "__FILE__", "__LINE__", "__ENCODING__",
+    "begin",
+    "self",
+    "def",
+    "class",
+    "module",
+    "return",
+    "yield",
+    "rescue",
+    "ensure",
+    "super",
+    "alias",
+    "undef",
+    "redo",
+    "retry",
+    "defined?",
+    "BEGIN",
+    "END",
+    "__FILE__",
+    "__LINE__",
+    "__ENCODING__",
 ];
 
 /// Operators, longest first.
 const OPS: &[&str] = &[
-    "**=", "<=>", "===", "...", "<<=", ">>=", "||=", "&&=", "**", "==", "!=", ">=", "<=", "&&", "||", "<<",
-    ">>", "+=", "-=", "*=", "/=", "%=", "|=", "&=", "^=", "..", "::", "=>", "&.", "+", "-", "*", "/", "%",
-    "=", "<", ">", "!", "&", "|", "^", "~", "?", ":", ",", ".", ";", "(", ")", "[", "]", "{", "}",
+    "**=", "<=>", "===", "...", "<<=", ">>=", "||=", "&&=", "**", "==", "!=", ">=", "<=", "&&", "||", "<<", ">>", "+=",
+    "-=", "*=", "/=", "%=", "|=", "&=", "^=", "..", "::", "=>", "&.", "+", "-", "*", "/", "%", "=", "<", ">", "!", "&",
+    "|", "^", "~", "?", ":", ",", ".", ";", "(", ")", "[", "]", "{", "}",
 ];
 
 const SYM_OPS: &[&str] = &[
-    "[]=", "[]", "<=>", "===", "==", "=~", "!=", "!~", "**", "+@", "-@", "<<", ">>", "<=", ">=", "+", "-",
-    "*", "/", "%", "<", ">", "!", "&", "|", "^", "~",
+    "[]=", "[]", "<=>", "===", "==", "=~", "!=", "!~", "**", "+@", "-@", "<<", ">>", "<=", ">=", "+", "-", "*", "/",
+    "%", "<", ">", "!", "&", "|", "^", "~",
 ];
 
 #[derive(Debug)]
@@ -203,28 +234,53 @@ pub fn tokenize_template(src: &str) -> Result<Vec<Token>, Flow> {
         match seg {
             Segment::Text(t, line) => {
                 last_line = line + t.matches('\n').count() as u32;
-                out.push(Token { tok: Tok::Text(t), line, space_before: true, neg_lit: false });
+                out.push(Token {
+                    tok: Tok::Text(t),
+                    line,
+                    space_before: true,
+                    neg_lit: false,
+                });
             }
             Segment::Code(code, line) => {
                 let mut lx = Lexer::new(&code, line);
                 let toks = lx.lex_all()?;
                 out.extend(toks);
                 let end_line = line + code.matches('\n').count() as u32;
-                out.push(Token { tok: Tok::Newline, line: end_line, space_before: true, neg_lit: false });
+                out.push(Token {
+                    tok: Tok::Newline,
+                    line: end_line,
+                    space_before: true,
+                    neg_lit: false,
+                });
                 last_line = end_line;
             }
             Segment::Output(code, line) => {
-                out.push(Token { tok: Tok::OutStart, line, space_before: true, neg_lit: false });
+                out.push(Token {
+                    tok: Tok::OutStart,
+                    line,
+                    space_before: true,
+                    neg_lit: false,
+                });
                 let mut lx = Lexer::new(&code, line);
                 let toks = lx.lex_all()?;
                 out.extend(toks);
                 let end_line = line + code.matches('\n').count() as u32;
-                out.push(Token { tok: Tok::OutEnd, line: end_line, space_before: true, neg_lit: false });
+                out.push(Token {
+                    tok: Tok::OutEnd,
+                    line: end_line,
+                    space_before: true,
+                    neg_lit: false,
+                });
                 last_line = end_line;
             }
         }
     }
-    out.push(Token { tok: Tok::Eof, line: last_line, space_before: true, neg_lit: false });
+    out.push(Token {
+        tok: Tok::Eof,
+        line: last_line,
+        space_before: true,
+        neg_lit: false,
+    });
     Ok(out)
 }
 
@@ -263,7 +319,12 @@ fn is_ident_char(c: char) -> bool {
 
 impl Lexer {
     fn new(src: &str, line: u32) -> Lexer {
-        Lexer { chars: src.chars().collect(), pos: 0, line, depth: 0 }
+        Lexer {
+            chars: src.chars().collect(),
+            pos: 0,
+            line,
+            depth: 0,
+        }
     }
 
     fn peek(&self) -> Option<char> {
@@ -275,7 +336,9 @@ impl Lexer {
     }
 
     fn starts_with(&self, s: &str) -> bool {
-        s.chars().enumerate().all(|(i, c)| self.chars.get(self.pos + i) == Some(&c))
+        s.chars()
+            .enumerate()
+            .all(|(i, c)| self.chars.get(self.pos + i) == Some(&c))
     }
 
     fn err(&self, msg: impl Into<String>) -> Flow {
@@ -329,7 +392,12 @@ impl Lexer {
                         Some(t) => t.tok == Tok::Newline || is_continuation(t),
                     };
                     if !skip && !self.next_line_starts_with_dot() {
-                        toks.push(Token { tok: Tok::Newline, line, space_before: true, neg_lit: false });
+                        toks.push(Token {
+                            tok: Tok::Newline,
+                            line,
+                            space_before: true,
+                            neg_lit: false,
+                        });
                     }
                     continue;
                 }
@@ -366,7 +434,11 @@ impl Lexer {
                 }
             } else if c == '"' || c == '\'' {
                 self.pos += 1;
-                let parts = if c == '"' { self.lex_dstring('"')? } else { vec![StrPart::Lit(self.lex_sstring()?)] };
+                let parts = if c == '"' {
+                    self.lex_dstring('"')?
+                } else {
+                    vec![StrPart::Lit(self.lex_sstring()?)]
+                };
                 // "name": value is a symbol label
                 match parts.as_slice() {
                     [StrPart::Lit(s)] if self.peek() == Some(':') && self.peek_at(1) != Some(':') => {
@@ -399,7 +471,12 @@ impl Lexer {
                 }
                 Tok::Op(op)
             };
-            toks.push(Token { tok, line, space_before: space, neg_lit });
+            toks.push(Token {
+                tok,
+                line,
+                space_before: space,
+                neg_lit,
+            });
             space = false;
         }
         Ok(toks)
@@ -522,7 +599,11 @@ impl Lexer {
             is_float = true;
         }
         if matches!(self.peek(), Some('e') | Some('E')) {
-            let sign_off = if matches!(self.peek_at(1), Some('+') | Some('-')) { 2 } else { 1 };
+            let sign_off = if matches!(self.peek_at(1), Some('+') | Some('-')) {
+                2
+            } else {
+                1
+            };
             if self.peek_at(sign_off).is_some_and(|c| c.is_ascii_digit()) {
                 text.push('e');
                 if sign_off == 2 {
@@ -606,7 +687,9 @@ impl Lexer {
                     parts.push(StrPart::Code(toks));
                 }
                 '#' if matches!(self.peek(), Some('@') | Some('$'))
-                    && self.peek_at(1).is_some_and(|c| is_ident_start(c) || c.is_ascii_uppercase() || c == '@') =>
+                    && self
+                        .peek_at(1)
+                        .is_some_and(|c| is_ident_start(c) || c.is_ascii_uppercase() || c == '@') =>
                 {
                     return Err(self.err("instance/global variable interpolation (#@x, #$x) is not supported"));
                 }
@@ -733,7 +816,11 @@ impl Lexer {
                 self.pos += 2;
                 Ok(Tok::Sym(self.lex_sstring()?))
             }
-            Some('@') | Some('$') if self.peek_at(2).is_some_and(|c| is_ident_start(c) || c.is_ascii_uppercase() || c == '@') => {
+            Some('@') | Some('$')
+                if self
+                    .peek_at(2)
+                    .is_some_and(|c| is_ident_start(c) || c.is_ascii_uppercase() || c == '@') =>
+            {
                 self.pos += 1;
                 let mut w = String::new();
                 while let Some(c @ ('@' | '$')) = self.peek() {
@@ -814,7 +901,11 @@ impl Lexer {
         if !cur.is_empty() {
             words.push(cur);
         }
-        Ok(if kind == Some('i') { Tok::Symbols(words) } else { Tok::Words(words) })
+        Ok(if kind == Some('i') {
+            Tok::Symbols(words)
+        } else {
+            Tok::Words(words)
+        })
     }
 }
 

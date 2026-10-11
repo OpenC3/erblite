@@ -1,13 +1,23 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! Built-in functions (§9): `format`, `Integer()`, `render`, ... and the class/module
 //! methods of `Math`, `JSON`, `File`, `Dir`, `Array.new`, `Hash.new`.
 
-use std::sync::Arc;
 use super::conv::{str_to_float_strict, str_to_int_strict};
 use super::{argc, check_array_len, file, object, to_int, to_str};
-use crate::error::{fail, R, ARGUMENT_ERROR, MATH_DOMAIN_ERROR, NAME_ERROR, NO_METHOD_ERROR, RUNTIME_ERROR, TYPE_ERROR};
+use crate::error::{
+    fail, ARGUMENT_ERROR, MATH_DOMAIN_ERROR, NAME_ERROR, NO_METHOD_ERROR, R, RUNTIME_ERROR, TYPE_ERROR,
+};
 use crate::format::{float_to_int, sprintf};
 use crate::interp::{BlockArg, Interp};
 use crate::value::{ClassId, RHash, Value};
+use std::sync::Arc;
 
 /// Calls a bare function (an identifier that is not a local or host variable).
 pub fn call_function(it: &mut Interp, name: &str, args: Vec<Value>, blk: Option<&BlockArg>, bare: bool) -> R<Value> {
@@ -52,7 +62,9 @@ pub fn call_function(it: &mut Interp, name: &str, args: Vec<Value>, blk: Option<
             Ok(match &args[0] {
                 Value::Nil => Value::array(vec![]),
                 Value::Array(_) => args[0].clone(),
-                Value::Hash(_) | Value::Range(_) | Value::Enumerator(_) => Value::array(super::iter_values(it, &args[0])?),
+                Value::Hash(_) | Value::Range(_) | Value::Enumerator(_) => {
+                    Value::array(super::iter_values(it, &args[0])?)
+                }
                 other => Value::array(vec![other.clone()]),
             })
         }
@@ -85,13 +97,22 @@ pub fn call_function(it: &mut Interp, name: &str, args: Vec<Value>, blk: Option<
                         match k {
                             Value::Sym(s) | Value::Str(s) => locals.push((s.clone(), v.clone())),
                             other => {
-                                return fail(TYPE_ERROR, format!("render locals keys must be Symbols or Strings, got {}", other.class_name()))
+                                return fail(
+                                    TYPE_ERROR,
+                                    format!(
+                                        "render locals keys must be Symbols or Strings, got {}",
+                                        other.class_name()
+                                    ),
+                                )
                             }
                         }
                     }
                 }
                 Some(other) => {
-                    return fail(TYPE_ERROR, format!("no implicit conversion of {} into Hash", other.type_desc()));
+                    return fail(
+                        TYPE_ERROR,
+                        format!("no implicit conversion of {} into Hash", other.type_desc()),
+                    );
                 }
             }
             let source = file::read(it, &path)?;
@@ -100,7 +121,10 @@ pub fn call_function(it: &mut Interp, name: &str, args: Vec<Value>, blk: Option<
         }
         _ => {
             if bare {
-                fail(NAME_ERROR, format!("undefined local variable or method '{}' for main", name))
+                fail(
+                    NAME_ERROR,
+                    format!("undefined local variable or method '{}' for main", name),
+                )
             } else {
                 fail(NO_METHOD_ERROR, format!("undefined method '{}' for main", name))
             }
@@ -132,7 +156,10 @@ fn math_arg(v: &Value) -> R<f64> {
 }
 
 fn domain<T>(name: &str) -> R<T> {
-    fail(MATH_DOMAIN_ERROR, format!("Numerical argument is out of domain - \"{}\"", name))
+    fail(
+        MATH_DOMAIN_ERROR,
+        format!("Numerical argument is out of domain - \"{}\"", name),
+    )
 }
 
 fn math(name: &str, args: &[Value]) -> R<Value> {
@@ -213,13 +240,26 @@ fn math(name: &str, args: &[Value]) -> R<Value> {
 fn json_opts(args: &[Value]) -> R<bool> {
     match args.get(1) {
         None | Some(Value::Nil) => Ok(false),
-        Some(Value::Hash(h)) => Ok(h.borrow().get(&Value::sym("symbolize_names")).is_some_and(|v| v.truthy())),
-        Some(other) => fail(TYPE_ERROR, format!("no implicit conversion of {} into Hash", other.type_desc())),
+        Some(Value::Hash(h)) => Ok(h
+            .borrow()
+            .get(&Value::sym("symbolize_names"))
+            .is_some_and(|v| v.truthy())),
+        Some(other) => fail(
+            TYPE_ERROR,
+            format!("no implicit conversion of {} into Hash", other.type_desc()),
+        ),
     }
 }
 
 /// Methods called on class and module values.
-pub fn call_class(it: &mut Interp, c: ClassId, recv: &Value, name: &str, args: Vec<Value>, blk: Option<&BlockArg>) -> R<Value> {
+pub fn call_class(
+    it: &mut Interp,
+    c: ClassId,
+    recv: &Value,
+    name: &str,
+    args: Vec<Value>,
+    blk: Option<&BlockArg>,
+) -> R<Value> {
     match (c, name) {
         (_, "name") => {
             argc(&args, 0, 0)?;
@@ -273,7 +313,9 @@ pub fn call_class(it: &mut Interp, c: ClassId, recv: &Value, name: &str, args: V
         (ClassId::Dir, "glob") => {
             argc(&args, 1, 1)?;
             let pat = to_str(&args[0])?;
-            Ok(Value::array(file::glob(it, &pat)?.into_iter().map(Value::string).collect()))
+            Ok(Value::array(
+                file::glob(it, &pat)?.into_iter().map(Value::string).collect(),
+            ))
         }
         _ => object::call(it, recv, name, args, blk),
     }

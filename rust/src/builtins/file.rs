@@ -1,10 +1,18 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! Sandboxed `File` and `Dir` functions (§9.1) and the pure path helpers.
 //!
 //! Every path is resolved against the canonical `base_dir`. The lexically normalized path
 //! and the fully resolved (symlink-free) path must both stay inside `base_dir`.
 
 use super::{argc, check_str_len, to_str, MAX_ARRAY_LEN};
-use crate::error::{fail, R, IO_ERROR, LIMIT_ERROR, SECURITY_ERROR, TYPE_ERROR};
+use crate::error::{fail, IO_ERROR, LIMIT_ERROR, R, SECURITY_ERROR, TYPE_ERROR};
 use crate::interp::Interp;
 use crate::value::Value;
 use std::path::{Component, Path, PathBuf};
@@ -22,7 +30,11 @@ fn outside(path: &str) -> R<PathBuf> {
 
 /// Joins and normalizes `.` / `..` without touching the file system.
 fn lexical(base: &Path, path: &str) -> PathBuf {
-    let joined = if Path::new(path).is_absolute() { PathBuf::from(path) } else { base.join(path) };
+    let joined = if Path::new(path).is_absolute() {
+        PathBuf::from(path)
+    } else {
+        base.join(path)
+    };
     let mut out = PathBuf::new();
     for c in joined.components() {
         match c {
@@ -84,7 +96,8 @@ pub fn read(it: &Interp, path: &str) -> R<String> {
             if p.is_dir() {
                 return fail(IO_ERROR, format!("Is a directory @ io_fread - {}", path));
             }
-            let meta = std::fs::metadata(&p).map_err(|e| crate::error::rt_err(IO_ERROR, format!("{} - {}", e, path)))?;
+            let meta =
+                std::fs::metadata(&p).map_err(|e| crate::error::rt_err(IO_ERROR, format!("{} - {}", e, path)))?;
             if meta.len() > super::MAX_STR_LEN as u64 {
                 return fail(LIMIT_ERROR, "file too large");
             }
@@ -167,7 +180,12 @@ fn join_parts(args: &[Value], out: &mut Vec<String>, depth: usize) -> R<()> {
                 join_parts(&inner, out, depth + 1)?;
             }
             Value::Str(s) => out.push(s.to_string()),
-            other => return fail(TYPE_ERROR, format!("no implicit conversion of {} into String", other.type_desc())),
+            other => {
+                return fail(
+                    TYPE_ERROR,
+                    format!("no implicit conversion of {} into String", other.type_desc()),
+                )
+            }
         }
     }
     Ok(())
@@ -252,7 +270,9 @@ impl Globber<'_> {
         if self.out.len() > MAX_ARRAY_LEN || depth > 64 {
             return fail(LIMIT_ERROR, "glob too large");
         }
-        let Some((&c, rest)) = comps.split_first() else { return Ok(()) };
+        let Some((&c, rest)) = comps.split_first() else {
+            return Ok(());
+        };
         if c == "**" {
             self.walk(dir, prefix, rest, depth + 1)?;
             for (name, path, is_dir, is_link) in self.sorted_entries(dir) {
@@ -309,7 +329,10 @@ pub fn glob(it: &Interp, pattern: &str) -> R<Vec<String>> {
         return fail(SECURITY_ERROR, format!("glob outside the sandbox: {}", pattern));
     }
     let comps: Vec<&str> = pattern.split('/').filter(|c| !c.is_empty()).collect();
-    let mut g = Globber { base: &base, out: Vec::new() };
+    let mut g = Globber {
+        base: &base,
+        out: Vec::new(),
+    };
     g.walk(&base, "", &comps, 0)?;
     let mut out = g.out;
     out.sort();

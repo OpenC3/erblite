@@ -1,7 +1,15 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! Methods every value has (§8.1), plus nil and boolean methods (§8.2).
 
 use super::{argc, block_or_enum, no_method, range, responds};
-use crate::error::{fail, R, ARGUMENT_ERROR, TYPE_ERROR};
+use crate::error::{fail, ARGUMENT_ERROR, R, TYPE_ERROR};
 use crate::interp::{BlockArg, Interp};
 use crate::value::{RHash, Value};
 

@@ -1,14 +1,22 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! Enumerable methods (§8.8), implemented over a snapshot of the yielded values.
 
-use std::sync::Arc;
 use super::numeric::{compare_or_fail, comparison_failed, int_overflow};
 use super::object::case_eq;
 use super::{argc, block_or_enum, check_array_len, iter_values, no_method, object, to_int};
-use crate::error::{fail, R, ARGUMENT_ERROR, TYPE_ERROR};
+use crate::error::{fail, ARGUMENT_ERROR, R, TYPE_ERROR};
 use crate::interp::{BlockArg, Interp};
 use crate::value::{RHash, Value};
 use std::cmp::Ordering;
 use std::collections::HashSet;
+use std::sync::Arc;
 
 type Cmp<'a> = dyn FnMut(&mut Interp, &Value, &Value) -> R<Ordering> + 'a;
 
@@ -59,7 +67,9 @@ pub fn sort_values(it: &mut Interp, items: Vec<Value>, blk: Option<&BlockArg>) -
             let r = it.call_block(b, vec![x.clone(), y.clone()])?;
             cmp_result(&r, x, y)
         }),
-        None => merge_sort(it, items, &mut |_: &mut Interp, x: &Value, y: &Value| compare_or_fail(x, y)),
+        None => merge_sort(it, items, &mut |_: &mut Interp, x: &Value, y: &Value| {
+            compare_or_fail(x, y)
+        }),
     }
 }
 
@@ -93,7 +103,13 @@ fn second_of(v: &Value) -> Value {
 
 /// Ruby's `sum` (exact integers, then Kahan-Babuska once a Float appears, then `+`).
 /// `float_init_kahan` is true for Enumerable#sum (a Float init also uses Kahan).
-pub fn sum_values(it: &mut Interp, items: Vec<Value>, init: Value, blk: Option<&BlockArg>, float_init_kahan: bool) -> R<Value> {
+pub fn sum_values(
+    it: &mut Interp,
+    items: Vec<Value>,
+    init: Value,
+    blk: Option<&BlockArg>,
+    float_init_kahan: bool,
+) -> R<Value> {
     let mut iter = items.into_iter();
     let mut v = init;
     let next = |it: &mut Interp, iter: &mut std::vec::IntoIter<Value>| -> R<Option<Value>> {
@@ -213,11 +229,17 @@ pub fn pairs_to_hash(items: &[Value]) -> R<Value> {
     let mut h = RHash::new();
     for (i, x) in items.iter().enumerate() {
         let Value::Array(a) = x else {
-            return fail(TYPE_ERROR, format!("wrong element type {} at {} (expected array)", x.class_name(), i));
+            return fail(
+                TYPE_ERROR,
+                format!("wrong element type {} at {} (expected array)", x.class_name(), i),
+            );
         };
         let a = a.borrow();
         if a.len() != 2 {
-            return fail(ARGUMENT_ERROR, format!("wrong array length at {} (expected 2, was {})", i, a.len()));
+            return fail(
+                ARGUMENT_ERROR,
+                format!("wrong array length at {} (expected 2, was {})", i, a.len()),
+            );
         }
         h.insert(a[0].clone(), a[1].clone());
     }
@@ -269,7 +291,14 @@ fn extreme(it: &mut Interp, items: Vec<Value>, args: &[Value], blk: Option<&Bloc
     Ok(best.unwrap_or(Value::Nil))
 }
 
-fn extreme_by(it: &mut Interp, recv: &Value, items: Vec<Value>, name: &str, args: &[Value], blk: Option<&BlockArg>) -> R<Value> {
+fn extreme_by(
+    it: &mut Interp,
+    recv: &Value,
+    items: Vec<Value>,
+    name: &str,
+    args: &[Value],
+    blk: Option<&BlockArg>,
+) -> R<Value> {
     argc(args, 0, 1)?;
     let b = block_or_enum!(blk, recv, name, args.to_vec());
     let is_min = name == "min_by";
@@ -301,7 +330,14 @@ fn extreme_by(it: &mut Interp, recv: &Value, items: Vec<Value>, name: &str, args
 }
 
 /// Dispatches an Enumerable method over `items` (the values `recv` yields).
-pub fn call(it: &mut Interp, recv: &Value, items: Vec<Value>, name: &str, args: Vec<Value>, blk: Option<&BlockArg>) -> R<Value> {
+pub fn call(
+    it: &mut Interp,
+    recv: &Value,
+    items: Vec<Value>,
+    name: &str,
+    args: Vec<Value>,
+    blk: Option<&BlockArg>,
+) -> R<Value> {
     match name {
         "each_with_index" => {
             argc(&args, 0, 0)?;
@@ -324,7 +360,14 @@ pub fn call(it: &mut Interp, recv: &Value, items: Vec<Value>, name: &str, args: 
             argc(&args, 1, 1)?;
             let n = to_int(&args[0])?;
             if n <= 0 {
-                return fail(ARGUMENT_ERROR, if name == "each_slice" { "invalid slice size" } else { "invalid size" });
+                return fail(
+                    ARGUMENT_ERROR,
+                    if name == "each_slice" {
+                        "invalid slice size"
+                    } else {
+                        "invalid size"
+                    },
+                );
             }
             let b = block_or_enum!(blk, recv, name, args);
             let n = n as usize;
@@ -389,7 +432,11 @@ pub fn call(it: &mut Interp, recv: &Value, items: Vec<Value>, name: &str, args: 
         "find_index" => {
             argc(&args, 0, 1)?;
             if let Some(v) = args.first() {
-                return Ok(items.iter().position(|x| x.equals(v)).map(|i| Value::Int(i as i64)).unwrap_or(Value::Nil));
+                return Ok(items
+                    .iter()
+                    .position(|x| x.equals(v))
+                    .map(|i| Value::Int(i as i64))
+                    .unwrap_or(Value::Nil));
             }
             let b = block_or_enum!(blk, recv, name, args);
             for (i, x) in items.into_iter().enumerate() {
@@ -522,7 +569,9 @@ pub fn call(it: &mut Interp, recv: &Value, items: Vec<Value>, name: &str, args: 
                     }
                 }
             }
-            Ok(Value::hash_from(groups.into_iter().map(|(k, v)| (k, Value::array(v))).collect()))
+            Ok(Value::hash_from(
+                groups.into_iter().map(|(k, v)| (k, Value::array(v))).collect(),
+            ))
         }
         "chunk_while" | "slice_when" => {
             argc(&args, 0, 0)?;
@@ -568,7 +617,10 @@ pub fn call(it: &mut Interp, recv: &Value, items: Vec<Value>, name: &str, args: 
                         others.push(iter_values(it, a)?)
                     }
                     other => {
-                        return fail(TYPE_ERROR, format!("wrong argument type {} (must respond to :each)", other.class_name()))
+                        return fail(
+                            TYPE_ERROR,
+                            format!("wrong argument type {} (must respond to :each)", other.class_name()),
+                        )
                     }
                 }
             }
@@ -608,7 +660,11 @@ pub fn call(it: &mut Interp, recv: &Value, items: Vec<Value>, name: &str, args: 
                     break;
                 }
             }
-            Ok(Value::array(if name == "take_while" { items[..idx].to_vec() } else { items[idx..].to_vec() }))
+            Ok(Value::array(if name == "take_while" {
+                items[..idx].to_vec()
+            } else {
+                items[idx..].to_vec()
+            }))
         }
         "first" => {
             argc(&args, 0, 1)?;

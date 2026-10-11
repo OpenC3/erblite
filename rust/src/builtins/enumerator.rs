@@ -1,3 +1,11 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! Enumerator methods (§8.7): an iterator method called without a block.
 
 use super::{argc, block_or_enum, check_array_len, enumerable, object, pack, to_int};
@@ -22,7 +30,9 @@ pub fn to_vec(it: &mut Interp, v: &Value) -> R<Vec<Value>> {
 }
 
 pub fn call(it: &mut Interp, recv: &Value, name: &str, args: Vec<Value>, blk: Option<&BlockArg>) -> R<Value> {
-    let Value::Enumerator(e) = recv else { return object::call(it, recv, name, args, blk) };
+    let Value::Enumerator(e) = recv else {
+        return object::call(it, recv, name, args, blk);
+    };
     match name {
         "each" => {
             argc(&args, 0, 0)?;

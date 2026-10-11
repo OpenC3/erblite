@@ -1,0 +1,17 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    erb (6.0.7)
+    json (2.21.2)
+
+PLATFORMS
+  arm64-darwin-25
+  ruby
+  x86_64-linux
+
+DEPENDENCIES
+  erb
+  json (= 2.21.2)
+
+BUNDLED WITH
+   2.6.7

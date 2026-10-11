@@ -1,3 +1,11 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! Runs the shared conformance suite in `../conformance/cases/*.json`.
 
 use erblite::{vars_from_value, Options, Template, Value, Vars};
@@ -54,17 +62,25 @@ fn conformance_suite() {
         let group = f.file_stem().unwrap().to_string_lossy().into_owned();
         let text = std::fs::read_to_string(&f).unwrap();
         let cases = Value::from_json(&text).unwrap_or_else(|e| panic!("{}: {}", f.display(), e));
-        let Value::Array(cases) = cases else { panic!("{} is not an array", f.display()) };
+        let Value::Array(cases) = cases else {
+            panic!("{} is not an array", f.display())
+        };
         for case in cases.borrow().iter() {
             total += 1;
             let name = as_str(&field(case, "name")).unwrap_or_default();
             let template = as_str(&field(case, "template")).unwrap_or_default();
-            let vars: Vars = field(case, "vars").and_then(|v| vars_from_value(&v)).unwrap_or_default();
+            let vars: Vars = field(case, "vars")
+                .and_then(|v| vars_from_value(&v))
+                .unwrap_or_default();
             let max_steps = match field(case, "max_steps") {
                 Some(Value::Int(n)) => Some(n as u64),
                 _ => None,
             };
-            let opts = Options { base_dir: Some(fixtures.clone()), max_steps, filename: Some("test.erb".into()) };
+            let opts = Options {
+                base_dir: Some(fixtures.clone()),
+                max_steps,
+                filename: Some("test.erb".into()),
+            };
             let result = Template::compile(&template, "test.erb").and_then(|t| t.render(&vars, &opts));
             let id = format!("{}/{}", group, name);
             if let Some(expected) = as_str(&field(case, "expected")) {
@@ -103,5 +119,10 @@ fn conformance_suite() {
         println!("FAIL {}\n", f);
     }
     println!("conformance: {}/{} passed", total - failures.len(), total);
-    assert!(failures.is_empty(), "{} of {} conformance cases failed", failures.len(), total);
+    assert!(
+        failures.is_empty(),
+        "{} of {} conformance cases failed",
+        failures.len(),
+        total
+    );
 }

@@ -1,8 +1,16 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! JSON parsing and generation (`JSON.parse`, `JSON.generate`, `JSON.pretty_generate`).
 //!
 //! Floats are written with `Float#to_s` (as Ruby 3.4's bundled json 2.9.1 does).
 
-use crate::error::{fail, R, JSON_GENERATOR_ERROR, JSON_NESTING_ERROR, JSON_PARSER_ERROR, RANGE_ERROR};
+use crate::error::{fail, JSON_GENERATOR_ERROR, JSON_NESTING_ERROR, JSON_PARSER_ERROR, R, RANGE_ERROR};
 use crate::value::{RHash, Value};
 
 /// Maximum nesting depth for parse and generate (the Ruby default).
@@ -18,7 +26,11 @@ struct JsonParser<'a> {
 
 /// Parses JSON text. Objects become Hashes (String keys, or Symbols with `symbolize`).
 pub fn parse(text: &str, symbolize: bool) -> R<Value> {
-    let mut p = JsonParser { s: text.as_bytes(), pos: 0, symbolize };
+    let mut p = JsonParser {
+        s: text.as_bytes(),
+        pos: 0,
+        symbolize,
+    };
     p.skip_ws()?;
     if p.pos >= p.s.len() {
         return fail(JSON_PARSER_ERROR, "unexpected end of input");
@@ -33,7 +45,10 @@ pub fn parse(text: &str, symbolize: bool) -> R<Value> {
 
 impl JsonParser<'_> {
     fn err<T>(&self, msg: &str) -> R<T> {
-        let rest: String = String::from_utf8_lossy(&self.s[self.pos.min(self.s.len())..]).chars().take(20).collect();
+        let rest: String = String::from_utf8_lossy(&self.s[self.pos.min(self.s.len())..])
+            .chars()
+            .take(20)
+            .collect();
         fail(JSON_PARSER_ERROR, format!("{} '{}'", msg, rest))
     }
 
@@ -76,7 +91,11 @@ impl JsonParser<'_> {
             Some(b'"') => Ok(Value::string(self.string()?)),
             Some(b'-' | b'0'..=b'9') => self.number(),
             Some(_) => {
-                for (word, v) in [("true", Value::Bool(true)), ("false", Value::Bool(false)), ("null", Value::Nil)] {
+                for (word, v) in [
+                    ("true", Value::Bool(true)),
+                    ("false", Value::Bool(false)),
+                    ("null", Value::Nil),
+                ] {
                     if self.s[self.pos..].starts_with(word.as_bytes()) {
                         self.pos += word.len();
                         return Ok(v);
@@ -117,7 +136,11 @@ impl JsonParser<'_> {
             self.pos += 1;
             self.skip_ws()?;
             let v = self.value(depth)?;
-            let key = if self.symbolize { Value::sym(&k) } else { Value::string(k) };
+            let key = if self.symbolize {
+                Value::sym(&k)
+            } else {
+                Value::string(k)
+            };
             h.insert(key, v);
             self.skip_ws()?;
             match self.s.get(self.pos) {
@@ -343,7 +366,10 @@ fn gen(v: &Value, out: &mut String, indent: Option<&str>, depth: usize) -> R<()>
         Value::Int(i) => out.push_str(&i.to_string()),
         Value::Float(f) => {
             if !f.is_finite() {
-                return fail(JSON_GENERATOR_ERROR, format!("{} not allowed in JSON", crate::format::float_to_s(*f)));
+                return fail(
+                    JSON_GENERATOR_ERROR,
+                    format!("{} not allowed in JSON", crate::format::float_to_s(*f)),
+                );
             }
             out.push_str(&crate::format::float_to_s(*f));
         }

@@ -1,5 +1,13 @@
+# Copyright 2026 OpenC3, Inc.
+# All Rights Reserved.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See LICENSE.md for more details.
+
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
@@ -8,8 +16,18 @@ version = "0.1.0"
 description = "A sandboxed template engine using ERB syntax and a subset of Ruby"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE.md"]
 dependencies = []
+keywords = ["template", "erb", "sandbox", "ruby"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Text Processing :: Markup",
+]
+
+[project.urls]
+Homepage = "https://github.com/OpenC3/erblite"
+Issues = "https://github.com/OpenC3/erblite/issues"
 
 [project.optional-dependencies]
 dev = ["pytest", "ruff"]

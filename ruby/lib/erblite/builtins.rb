@@ -1,3 +1,11 @@
+# Copyright 2026 OpenC3, Inc.
+# All Rights Reserved.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See LICENSE.md for more details.
+
 # frozen_string_literal: true
 
 module ERBLite
@@ -173,9 +181,47 @@ module ERBLite
       when String then v
       when nil then +""
       when Symbol then v.to_s
-      when Array, Hash then v.inspect
+      when Array, Hash then inspect(v)
       else v.to_s
       end
+    end
+
+    # Symbol hash keys that print bare (`name: v`) in Ruby 3.4's Hash#inspect.
+    BARE_KEY = /\A(?:[A-Za-z_]|[^\x00-\x7f])(?:[A-Za-z0-9_]|[^\x00-\x7f])*[?!]?\z/
+
+    # Ruby 3.4 inspect for every template value, independent of the host
+    # Ruby version (Hash#inspect changed format in 3.4).
+    def self.inspect(v, seen = {}.compare_by_identity)
+      case v
+      when Array
+        return "[...]" if seen[v]
+
+        seen[v] = true
+        out = "[#{v.map { |e| inspect(e, seen) }.join(", ")}]"
+        seen.delete(v)
+        out
+      when Hash
+        return "{...}" if seen[v]
+        return "{}" if v.empty?
+
+        seen[v] = true
+        out = "{#{v.map { |k, val| "#{inspect_key(k, seen)} #{inspect(val, seen)}" }.join(", ")}}"
+        seen.delete(v)
+        out
+      when Range
+        "#{inspect(v.begin, seen) unless v.begin.nil?}#{v.exclude_end? ? "..." : ".."}#{inspect(v.end, seen) unless v.end.nil?}"
+      when Enum
+        v.inspect
+      else
+        v.inspect
+      end
+    end
+
+    def self.inspect_key(k, seen)
+      return "#{inspect(k, seen)} =>" unless k.is_a?(Symbol)
+
+      name = k.to_s
+      name.match?(BARE_KEY) ? "#{name}:" : "#{name.inspect}:"
     end
 
     def self.is_a(v, cls)
@@ -353,7 +399,7 @@ module ERBLite
     defm(COMMON_T, "!", 0) { |it, r| !it.truthy(r) }
     defm(COMMON_T, "nil?", 0) { |_, r| r.nil? }
     defm(COMMON_T, "to_s", 0) { |_, r| Builtins.to_s(r) }
-    defm(COMMON_T, "inspect", 0) { |_, r| r.inspect }
+    defm(COMMON_T, "inspect", 0) { |_, r| Builtins.inspect(r) }
     defm(COMMON_T, "class", 0) { |_, r| Builtins.class_of(r) }
     defm(COMMON_T, %w[is_a? kind_of?], 1) { |_, r, a| Builtins.is_a(r, a[0]) }
     defm(COMMON_T, "instance_of?", 1) do |_, r, a|

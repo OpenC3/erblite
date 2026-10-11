@@ -1,14 +1,22 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! Tree-walking interpreter.
 
-use std::sync::Arc;
 use crate::ast::{Arg, BlockNode, Kind, Node, Param, Target, VarRef};
 use crate::builtins;
-use crate::error::{fail, rt_err, Error, Flow, R, ARGUMENT_ERROR, LIMIT_ERROR, NAME_ERROR, RANGE_ERROR};
+use crate::error::{fail, rt_err, Error, Flow, ARGUMENT_ERROR, LIMIT_ERROR, NAME_ERROR, R, RANGE_ERROR};
 use crate::value::{ClassId, RHash, Value};
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::rc::Rc;
+use std::sync::Arc;
 
 /// Deepest allowed expression evaluation nesting.
 const MAX_EVAL_DEPTH: u32 = 3000;
@@ -30,7 +38,12 @@ pub struct Ctx {
 
 impl Ctx {
     pub fn new(base_dir: Option<PathBuf>, max_steps: Option<u64>) -> Ctx {
-        Ctx { base_dir, max_steps, steps: Cell::new(0), frozen_strs: RefCell::new(Vec::new()) }
+        Ctx {
+            base_dir,
+            max_steps,
+            steps: Cell::new(0),
+            frozen_strs: RefCell::new(Vec::new()),
+        }
     }
 
     /// Returns a frozen copy of a string.
@@ -45,7 +58,10 @@ impl Ctx {
     }
 
     pub fn is_frozen_str(&self, s: &Arc<str>) -> bool {
-        self.frozen_strs.borrow().iter().any(|w| w.upgrade().is_some_and(|x| Arc::ptr_eq(&x, s)))
+        self.frozen_strs
+            .borrow()
+            .iter()
+            .any(|w| w.upgrade().is_some_and(|x| Arc::ptr_eq(&x, s)))
     }
 }
 
@@ -163,7 +179,12 @@ impl Interp {
     }
 
     fn read_var(&self, v: &VarRef) -> Value {
-        let val = self.frames.get(v.depth).and_then(|f| f.get(&v.name)).cloned().unwrap_or(Value::Nil);
+        let val = self
+            .frames
+            .get(v.depth)
+            .and_then(|f| f.get(&v.name))
+            .cloned()
+            .unwrap_or(Value::Nil);
         self.materialize(val)
     }
 
@@ -256,7 +277,12 @@ impl Interp {
                 self.write_var(v, val.clone());
                 Ok(val)
             }
-            Kind::IdentCall { name, args, has_args, block } => {
+            Kind::IdentCall {
+                name,
+                args,
+                has_args,
+                block,
+            } => {
                 let (argv, bp) = self.eval_args(args)?;
                 let bare = !*has_args && block.is_none() && bp.is_none();
                 match (block, bp) {
@@ -271,7 +297,13 @@ impl Interp {
                     (None, None) => builtins::kernel::call_function(self, name, argv, None, bare),
                 }
             }
-            Kind::Call { recv, name, args, block, safe } => {
+            Kind::Call {
+                recv,
+                name,
+                args,
+                block,
+                safe,
+            } => {
                 if &**name == "<<" && args.len() == 1 && block.is_none() && !*safe {
                     return Ok(self.shovel(node)?.0);
                 }
@@ -516,15 +548,25 @@ impl Interp {
         self.tick()?;
         let (cur, setter) = match &recv.kind {
             Kind::Var(v) => (self.read_var(v), Some(Setter::Var(v.clone()))),
-            Kind::Call { recv: r2, name, args: a2, block: None, safe: false } if &**name == "[]" => {
+            Kind::Call {
+                recv: r2,
+                name,
+                args: a2,
+                block: None,
+                safe: false,
+            } if &**name == "[]" => {
                 let rv = self.eval(r2)?;
                 let (av, _) = self.eval_args(a2)?;
                 let cur = self.call_method(&rv, "[]", av.clone(), None)?;
                 (cur, Some(Setter::Index(rv, av)))
             }
-            Kind::Call { name, args: a2, block: None, safe: false, .. } if &**name == "<<" && a2.len() == 1 => {
-                self.shovel(recv)?
-            }
+            Kind::Call {
+                name,
+                args: a2,
+                block: None,
+                safe: false,
+                ..
+            } if &**name == "<<" && a2.len() == 1 => self.shovel(recv)?,
             _ => (self.eval(recv)?, None),
         };
         let argv = self.eval(arg)?;

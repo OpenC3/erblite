@@ -1,7 +1,14 @@
+// Copyright 2026 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See LICENSE.md for more details.
+
 //! Runtime values, equality, hashing keys, comparison, `to_s` and `inspect`.
 
-use std::sync::Arc;
-use crate::error::{fail, Error, R, LIMIT_ERROR};
+use crate::error::{fail, Error, LIMIT_ERROR, R};
 use crate::format::float_to_s;
 use std::cell::{Cell, RefCell};
 use std::cmp::Ordering;
@@ -9,6 +16,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
+use std::sync::Arc;
 
 /// Nesting depth past which recursive operations on data stop.
 pub const MAX_DATA_DEPTH: usize = 1000;
@@ -283,7 +291,11 @@ impl Default for RHash {
 
 impl RHash {
     pub fn new() -> RHash {
-        RHash { entries: Vec::new(), index: HashMap::new(), default: Value::Nil }
+        RHash {
+            entries: Vec::new(),
+            index: HashMap::new(),
+            default: Value::Nil,
+        }
     }
 
     pub fn len(&self) -> usize {
@@ -369,11 +381,17 @@ impl Value {
     }
 
     pub fn array(v: Vec<Value>) -> Value {
-        Value::Array(Rc::new(Arr { v: RefCell::new(v), frozen: Cell::new(false) }))
+        Value::Array(Rc::new(Arr {
+            v: RefCell::new(v),
+            frozen: Cell::new(false),
+        }))
     }
 
     pub fn hash(h: RHash) -> Value {
-        Value::Hash(Rc::new(HashCell { h: RefCell::new(h), frozen: Cell::new(false) }))
+        Value::Hash(Rc::new(HashCell {
+            h: RefCell::new(h),
+            frozen: Cell::new(false),
+        }))
     }
 
     pub fn hash_from(pairs: Vec<(Value, Value)>) -> Value {
@@ -385,7 +403,11 @@ impl Value {
     }
 
     pub fn enumerator(recv: Value, meth: &str, args: Vec<Value>) -> Value {
-        Value::Enumerator(Rc::new(EnumVal { recv, meth: Arc::from(meth), args }))
+        Value::Enumerator(Rc::new(EnumVal {
+            recv,
+            meth: Arc::from(meth),
+            args,
+        }))
     }
 
     /// Parses JSON text into a value (objects become Hashes with String keys).
@@ -612,9 +634,7 @@ fn values_eq(a: &Value, b: &Value, depth: usize) -> bool {
                 })
         }
         (Value::Range(x), Value::Range(y)) => {
-            x.excl == y.excl
-                && values_eq(&x.start, &y.start, depth + 1)
-                && values_eq(&x.end, &y.end, depth + 1)
+            x.excl == y.excl && values_eq(&x.start, &y.start, depth + 1) && values_eq(&x.end, &y.end, depth + 1)
         }
         (Value::Enumerator(x), Value::Enumerator(y)) => Rc::ptr_eq(x, y),
         _ => false,
@@ -684,13 +704,16 @@ fn compare_depth(a: &Value, b: &Value, depth: usize) -> Option<Ordering> {
 /// True when `name` can be written as a bare symbol (`:name`).
 pub fn symbol_is_simple(name: &str) -> bool {
     const OPS: &[&str] = &[
-        "+", "-", "*", "/", "%", "**", "==", "!=", "<", ">", "<=", ">=", "<=>", "!", "[]", "[]=", "<<",
-        ">>", "&", "|", "^", "~", "+@", "-@", "===", "=~", "!~",
+        "+", "-", "*", "/", "%", "**", "==", "!=", "<", ">", "<=", ">=", "<=>", "!", "[]", "[]=", "<<", ">>", "&", "|",
+        "^", "~", "+@", "-@", "===", "=~", "!~",
     ];
     if OPS.contains(&name) {
         return true;
     }
-    let var = name.strip_prefix("@@").or_else(|| name.strip_prefix('@')).or_else(|| name.strip_prefix('$'));
+    let var = name
+        .strip_prefix("@@")
+        .or_else(|| name.strip_prefix('@'))
+        .or_else(|| name.strip_prefix('$'));
     if let Some(v) = var {
         return symbol_is_label(v) && !v.ends_with(['?', '!']) && !v.starts_with(|c: char| c.is_ascii_digit());
     }
@@ -851,7 +874,9 @@ fn inspect_into(v: &Value, out: &mut String, seen: &mut Vec<usize>) -> R<()> {
                 inspect_into(&r.end, out, seen)?;
             }
         }
-        Value::Enumerator(e) if &*e.meth == "step" && matches!(e.recv, Value::Int(_) | Value::Float(_) | Value::Range(_)) => {
+        Value::Enumerator(e)
+            if &*e.meth == "step" && matches!(e.recv, Value::Int(_) | Value::Float(_) | Value::Range(_)) =>
+        {
             // an ArithmeticSequence: (1.step(10, 3)) / ((1..10).step(2))
             out.push('(');
             let is_range = matches!(e.recv, Value::Range(_));

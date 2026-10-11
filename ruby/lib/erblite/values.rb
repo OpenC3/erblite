@@ -1,3 +1,11 @@
+# Copyright 2026 OpenC3, Inc.
+# All Rights Reserved.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See LICENSE.md for more details.
+
 # frozen_string_literal: true
 
 module ERBLite
@@ -36,12 +44,13 @@ module ERBLite
     end
 
     def inspect
-      a = @args.empty? ? "" : "(#{@args.map(&:inspect).join(", ")})"
+      a = @args.empty? ? "" : "(#{@args.map { |x| Builtins.inspect(x) }.join(", ")})"
       if @meth == "step" && arithmetic_sequence?
         # Ruby returns an ArithmeticSequence here, which prints differently.
-        return @recv.is_a?(Range) ? "((#{@recv.inspect}).step#{a})" : "(#{@recv.inspect}.step#{a})"
+        recv = Builtins.inspect(@recv)
+        return @recv.is_a?(Range) ? "((#{recv}).step#{a})" : "(#{recv}.step#{a})"
       end
-      "#<Enumerator: #{@recv.inspect}:#{@meth}#{a}>"
+      "#<Enumerator: #{Builtins.inspect(@recv)}:#{@meth}#{a}>"
     end
 
     def arithmetic_sequence?
