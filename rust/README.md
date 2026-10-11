@@ -21,3 +21,10 @@ with `kind` (e.g. `"NoMethodError"`), `message`, `filename` and `line`.
 CLI: `cargo run --release --bin erblite -- template.erb [--vars vars.json] [--base-dir DIR] [--max-steps N]`
 
 Tests: `cargo test` (the conformance runner is `tests/conformance.rs`)
+
+To check packaging, run `cargo package-check` (or `cargo publish-check`) instead
+of plain `cargo package`. Plain `cargo package` verifies the crate inside the
+shared `target/` directory, and that overwrites the normal build's fingerprints.
+After that, edits to `src/` are silently ignored until you run
+`cargo clean -p erblite`. The aliases in `.cargo/config.toml` verify the crate
+in `target/package-verify/` instead.

@@ -1,0 +1,16 @@
+# Copyright 2026 OpenC3, Inc.
+# All Rights Reserved.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See LICENSE.md for more details.
+
+# Plain `cargo package` / `cargo publish` verify the crate by compiling the copy in
+# target/package/ into the shared target directory. That overwrites the normal debug
+# build's fingerprint so it tracks the copied sources, after which edits to src/ are
+# silently ignored (stale builds and tests) until `cargo clean -p erblite`.
+# Use these aliases, which verify in a separate target directory, instead.
+[alias]
+package-check = "package --allow-dirty --target-dir target/package-verify"
+publish-check = "publish --dry-run --allow-dirty --target-dir target/package-verify"

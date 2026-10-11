@@ -16,7 +16,7 @@ repository = "https://github.com/OpenC3/erblite"
 readme = "README.md"
 keywords = ["template", "erb", "sandbox", "ruby"]
 categories = ["template-engine"]
-exclude = ["target/", "rustfmt.toml"]
+exclude = ["target/", "rustfmt.toml", ".cargo/"]
 
 [lib]
 name = "erblite"
