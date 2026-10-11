@@ -30,7 +30,7 @@ from .sandbox import Sandbox
 from .values import INT_MAX, INT_MIN, RHash, Symbol, Value
 
 __all__ = ["Error", "Symbol", "Template", "render", "render_file"]
-__version__ = "0.1.0"
+__version__ = "0.5.0"
 
 _LOCAL_RE = re.compile(r"\A[a-z_][A-Za-z0-9_]*\Z")
 _MIN_RECURSION = 10000

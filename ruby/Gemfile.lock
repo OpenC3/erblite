@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    erblite (0.1.0)
+    erblite (0.5.0)
 
 GEM
   remote: https://rubygems.org/

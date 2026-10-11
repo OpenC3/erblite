@@ -12,7 +12,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "erblite"
-version = "0.1.0"
+version = "0.5.0"
 description = "A sandboxed template engine using ERB syntax and a subset of Ruby"
 readme = "README.md"
 requires-python = ">=3.10"
